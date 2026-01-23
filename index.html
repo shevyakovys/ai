@@ -13,7 +13,8 @@
           <p class="app__eyebrow">Личный бюджет</p>
           <h1>Учет расходов по категориям</h1>
           <p class="app__subtitle">
-            Добавляйте расходы, анализируйте общую сумму и распределение по категориям.
+            Добавляйте расходы, создавайте собственные категории, фильтруйте записи и ведите учет
+            по нескольким профилям.
           </p>
         </div>
         <div class="app__total">
@@ -24,6 +25,30 @@
 
       <main class="app__content">
         <section class="card">
+          <h2>Профили пользователей</h2>
+          <div class="profile">
+            <label>
+              Активный профиль
+              <select id="profileSelect"></select>
+            </label>
+            <form id="profileForm" class="inline-form">
+              <input type="text" name="profileName" placeholder="Новый профиль" required />
+              <button type="submit">Добавить</button>
+            </form>
+          </div>
+          <p class="hint">Каждый профиль хранит собственные расходы и категории.</p>
+        </section>
+
+        <section class="card">
+          <h2>Добавить категорию</h2>
+          <form id="categoryForm" class="inline-form">
+            <input type="text" name="categoryName" placeholder="Например, Питомцы" required />
+            <button type="submit">Добавить</button>
+          </form>
+          <div id="categoryList" class="chip-list"></div>
+        </section>
+
+        <section class="card">
           <h2>Добавить расход</h2>
           <form id="expenseForm" class="form">
             <label>
@@ -32,16 +57,7 @@
             </label>
             <label>
               Категория
-              <select name="category" required>
-                <option value="" disabled selected>Выберите категорию</option>
-                <option>Еда</option>
-                <option>Транспорт</option>
-                <option>Дом</option>
-                <option>Развлечения</option>
-                <option>Здоровье</option>
-                <option>Обучение</option>
-                <option>Другое</option>
-              </select>
+              <select name="category" id="categorySelect" required></select>
             </label>
             <label>
               Сумма (₽)
@@ -52,6 +68,31 @@
               <input type="date" name="date" required />
             </label>
             <button type="submit">Добавить</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h2>Фильтры</h2>
+            <button id="resetFilters" class="ghost">Сбросить</button>
+          </div>
+          <form id="filterForm" class="form">
+            <label>
+              Категория
+              <select name="category" id="filterCategory"></select>
+            </label>
+            <label>
+              Период с
+              <input type="date" name="startDate" />
+            </label>
+            <label>
+              Период по
+              <input type="date" name="endDate" />
+            </label>
+            <label>
+              Поиск по названию
+              <input type="text" name="search" placeholder="Например, продукты" />
+            </label>
           </form>
         </section>
 
