@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Учет расходов</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app__header">
+        <div>
+          <p class="app__eyebrow">Личный бюджет</p>
+          <h1>Учет расходов по категориям</h1>
+          <p class="app__subtitle">
+            Войдите в профиль, добавляйте расходы, создавайте собственные категории и быстро
+            фильтруйте данные.
+          </p>
+        </div>
+        <div class="app__total">
+          <span>Всего расходов</span>
+          <strong id="totalAmount">0 ₽</strong>
+        </div>
+      </header>
+
+      <section id="authSection" class="card auth">
+        <div>
+          <h2>Вход или регистрация</h2>
+          <p class="hint">Создайте профиль, чтобы сохранять расходы в персональной базе данных.</p>
+        </div>
+        <div class="auth__forms">
+          <form id="loginForm" class="form">
+            <h3>Вход</h3>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Пароль
+              <input type="password" name="password" placeholder="••••••" required />
+            </label>
+            <button type="submit">Войти</button>
+            <p id="loginMessage" class="message"></p>
+          </form>
+
+          <form id="registerForm" class="form">
+            <h3>Регистрация</h3>
+            <label>
+              Имя
+              <input type="text" name="name" placeholder="Анна" required />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Пароль
+              <input type="password" name="password" placeholder="Минимум 6 символов" required />
+            </label>
+            <button type="submit">Создать профиль</button>
+            <p id="registerMessage" class="message"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="filtersBar" class="filters-bar">
+        <div class="filters-bar__header">
+          <h2>Фильтры</h2>
+          <button id="resetFilters" class="ghost">Сбросить</button>
+        </div>
+        <form id="filterForm" class="filters-form">
+          <label>
+            Категория
+            <select name="category" id="filterCategory"></select>
+          </label>
+          <label>
+            Период с
+            <input type="date" name="startDate" />
+          </label>
+          <label>
+            Период по
+            <input type="date" name="endDate" />
+          </label>
+          <label>
+            Поиск по названию
+            <input type="text" name="search" placeholder="Например, продукты" />
+          </label>
+        </form>
+      </section>
+
+      <main id="appContent" class="app__content">
+        <section class="card">
+          <h2>Профиль пользователя</h2>
+          <div class="profile">
+            <div>
+              <p class="profile__name" id="userName">—</p>
+              <p class="profile__email" id="userEmail">—</p>
+            </div>
+            <button id="logoutButton" class="ghost">Выйти</button>
+          </div>
+          <p class="hint">Все расходы и категории сохраняются в базе данных профиля.</p>
+        </section>
+
+        <section class="card">
+          <h2>Добавить категорию</h2>
+          <form id="categoryForm" class="inline-form">
+            <input type="text" name="categoryName" placeholder="Например, Питомцы" required />
+            <button type="submit">Добавить</button>
+          </form>
+          <div id="categoryList" class="chip-list"></div>
+        </section>
+
+        <section class="card">
+          <h2>Добавить расход</h2>
+          <form id="expenseForm" class="form">
+            <label>
+              Название
+              <input type="text" name="title" placeholder="Например, кофе" required />
+            </label>
+            <label>
+              Категория
+              <select name="category" id="categorySelect" required></select>
+            </label>
+            <label>
+              Сумма (₽)
+              <input type="number" name="amount" min="0.01" step="0.01" placeholder="0.00" required />
+            </label>
+            <label>
+              Дата
+              <input type="date" name="date" required />
+            </label>
+            <button type="submit">Добавить</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h2>Расходы</h2>
+            <button id="clearAll" class="ghost">Очистить все</button>
+          </div>
+          <div id="emptyState" class="empty">
+            <p>Пока нет расходов. Добавьте первую запись.</p>
+          </div>
+          <ul id="expenseList" class="expense-list"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Итоги по категориям</h2>
+          <div id="categorySummary" class="summary"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="expenseItemTemplate">
+      <li class="expense-item">
+        <div class="expense-item__info">
+          <h3></h3>
+          <p class="expense-item__meta"></p>
+        </div>
+        <div class="expense-item__amount"></div>
+        <button class="expense-item__remove" type="button">Удалить</button>
+      </li>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
