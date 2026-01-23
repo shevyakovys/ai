@@ -21,6 +21,8 @@ const registerMessage = document.getElementById("registerMessage");
 const logoutButton = document.getElementById("logoutButton");
 const userName = document.getElementById("userName");
 const userEmail = document.getElementById("userEmail");
+const totalCount = document.getElementById("totalCount");
+const filteredCount = document.getElementById("filteredCount");
 
 const STORAGE_KEY = "expenses-db";
 const DEFAULT_CATEGORIES = [
@@ -252,6 +254,8 @@ const render = () => {
   }
 
   const filteredExpenses = applyFilters(activeUser.expenses);
+  totalCount.textContent = activeUser.expenses.length;
+  filteredCount.textContent = filteredExpenses.length;
   renderList(filteredExpenses);
   renderTotals(filteredExpenses);
 };

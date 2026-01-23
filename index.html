@@ -13,8 +13,8 @@
           <p class="app__eyebrow">Личный бюджет</p>
           <h1>Учет расходов по категориям</h1>
           <p class="app__subtitle">
-            Войдите в профиль, добавляйте расходы, создавайте собственные категории и быстро
-            фильтруйте данные.
+            Войдите в профиль, добавляйте расходы и смотрите аналитику по категориям. Быстрые
+            фильтры помогут найти нужные покупки за секунды.
           </p>
         </div>
         <div class="app__total">
@@ -65,7 +65,10 @@
 
       <section id="filtersBar" class="filters-bar">
         <div class="filters-bar__header">
-          <h2>Фильтры</h2>
+          <div>
+            <h2>Фильтры</h2>
+            <p class="filters-bar__subtitle">Быстрый поиск расходов как в интернет-магазине.</p>
+          </div>
           <button id="resetFilters" class="ghost">Сбросить</button>
         </div>
         <form id="filterForm" class="filters-form">
@@ -86,6 +89,16 @@
             <input type="text" name="search" placeholder="Например, продукты" />
           </label>
         </form>
+        <div class="filters-bar__stats">
+          <div class="stat">
+            <span>Все расходы</span>
+            <strong id="totalCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>В фильтре</span>
+            <strong id="filteredCount">0</strong>
+          </div>
+        </div>
       </section>
 
       <main id="appContent" class="app__content">
