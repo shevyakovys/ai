@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Учет расходов</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app__header">
+        <div>
+          <p class="app__eyebrow">Личный бюджет</p>
+          <h1>Учет расходов по категориям</h1>
+          <p class="app__subtitle">
+            Войдите в профиль, добавляйте расходы и смотрите аналитику по категориям. Быстрые
+            фильтры помогут найти нужные покупки за секунды.
+          </p>
+        </div>
+        <div class="app__meta">
+          <div class="app__total">
+            <span>Всего расходов</span>
+            <strong id="totalAmount">0 ₽</strong>
+          </div>
+          <button id="profileButton" class="profile-pill" type="button">
+            <span class="profile-pill__label">Профиль</span>
+            <span class="profile-pill__name" id="profileShortName">—</span>
+          </button>
+        </div>
+      </header>
+
+      <section id="authSection" class="card auth">
+        <div>
+          <h2>Вход или регистрация</h2>
+          <p class="hint">Создайте профиль, чтобы сохранять расходы в персональной базе данных.</p>
+        </div>
+        <div class="auth__forms">
+          <form id="loginForm" class="form">
+            <h3>Вход</h3>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Пароль
+              <input type="password" name="password" placeholder="••••••" required />
+            </label>
+            <button type="submit">Войти</button>
+            <p id="loginMessage" class="message"></p>
+          </form>
+
+          <form id="registerForm" class="form">
+            <h3>Регистрация</h3>
+            <label>
+              Имя
+              <input type="text" name="name" placeholder="Анна" required />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Пароль
+              <input type="password" name="password" placeholder="Минимум 6 символов" required />
+            </label>
+            <button type="submit">Создать профиль</button>
+            <p id="registerMessage" class="message"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="filtersBar" class="filters-bar">
+        <div class="filters-bar__header">
+          <div>
+            <h2>Фильтры</h2>
+            <p class="filters-bar__subtitle">Быстрый поиск расходов как в интернет-магазине.</p>
+          </div>
+          <button id="resetFilters" class="ghost">Сбросить</button>
+        </div>
+        <form id="filterForm" class="filters-form">
+          <label>
+            Категория
+            <select name="category" id="filterCategory"></select>
+          </label>
+          <label>
+            Период с
+            <input type="date" name="startDate" />
+          </label>
+          <label>
+            Период по
+            <input type="date" name="endDate" />
+          </label>
+          <label>
+            Поиск по названию
+            <input type="text" name="search" placeholder="Например, продукты" />
+          </label>
+        </form>
+        <div class="filters-bar__stats">
+          <div class="stat">
+            <span>Все расходы</span>
+            <strong id="totalCount">0</strong>
+          </div>
+          <div class="stat">
+            <span>В фильтре</span>
+            <strong id="filteredCount">0</strong>
+          </div>
+        </div>
+      </section>
+
+      <main id="appContent" class="app__content">
+        <section class="card">
+          <h2>Добавить категорию</h2>
+          <form id="categoryForm" class="inline-form">
+            <input type="text" name="categoryName" placeholder="Например, Питомцы" required />
+            <button type="submit">Добавить</button>
+          </form>
+          <div id="categoryList" class="chip-list"></div>
+        </section>
+
+        <section class="card">
+          <h2>Добавить расход</h2>
+          <form id="expenseForm" class="form">
+            <label>
+              Название
+              <input type="text" name="title" placeholder="Например, кофе" required />
+            </label>
+            <label>
+              Категория
+              <div class="field-with-action">
+                <select name="category" id="categorySelect" required></select>
+                <button id="openCategoryModal" class="ghost" type="button">+ Добавить</button>
+              </div>
+            </label>
+            <label>
+              Сумма (₽)
+              <input type="number" name="amount" min="0.01" step="0.01" placeholder="0.00" required />
+            </label>
+            <label>
+              Дата
+              <input type="date" name="date" required />
+            </label>
+            <button type="submit">Добавить</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h2>Расходы</h2>
+            <button id="clearAll" class="ghost">Очистить все</button>
+          </div>
+          <div id="emptyState" class="empty">
+            <p>Пока нет расходов. Добавьте первую запись.</p>
+          </div>
+          <ul id="expenseList" class="expense-list"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Итоги по категориям</h2>
+          <div class="summary__controls">
+            <label>
+              Период
+              <select id="summaryPeriod">
+                <option value="day">День</option>
+                <option value="week">Неделя</option>
+                <option value="month" selected>Месяц</option>
+                <option value="quarter">Квартал</option>
+                <option value="half-year">Полгода</option>
+                <option value="year">Год</option>
+                <option value="all">Все время</option>
+              </select>
+            </label>
+          </div>
+          <div id="categorySummary" class="summary"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="expenseItemTemplate">
+      <li class="expense-item">
+        <div class="expense-item__info">
+          <h3></h3>
+          <p class="expense-item__meta"></p>
+        </div>
+        <div class="expense-item__amount"></div>
+        <button class="expense-item__remove" type="button">Удалить</button>
+      </li>
+    </template>
+
+    <div id="profileModal" class="modal">
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2>Профиль пользователя</h2>
+          <button class="ghost" type="button" data-close-modal>Закрыть</button>
+        </div>
+        <div class="profile-modal">
+          <div class="profile-modal__avatar">
+            <img id="avatarPreview" alt="Аватар пользователя" />
+            <label class="avatar-upload">
+              Загрузить аватар
+              <input type="file" id="avatarInput" accept="image/*" />
+            </label>
+          </div>
+          <div class="profile-modal__info">
+            <p class="profile__name" id="userName">—</p>
+            <p class="profile__email" id="userEmail">—</p>
+            <p class="hint">Все расходы и категории сохраняются в базе данных профиля.</p>
+            <div class="profile-modal__actions">
+              <button id="shareButton" type="button">Поделиться ссылкой</button>
+              <button id="logoutButton" class="ghost" type="button">Выйти</button>
+            </div>
+            <p id="shareMessage" class="message message--success"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="categoryModal" class="modal">
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2>Новая категория</h2>
+          <button class="ghost" type="button" data-close-modal>Закрыть</button>
+        </div>
+        <form id="categoryModalForm" class="form">
+          <label>
+            Название категории
+            <input type="text" name="categoryName" placeholder="Например, Питомцы" required />
+          </label>
+          <button type="submit">Добавить категорию</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
