@@ -29,7 +29,7 @@ body {
   flex-wrap: wrap;
   gap: 24px;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .app__eyebrow {
@@ -50,7 +50,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-end;
 }
 
@@ -64,6 +64,7 @@ body {
   flex-direction: column;
   gap: 4px;
   min-width: 220px;
+  min-height: 90px;
 }
 
 .app__total span {
@@ -79,12 +80,12 @@ body {
   background: #ffffff;
   color: #111827;
   border-radius: 999px;
-  padding: 10px 18px;
+  padding: 12px 20px;
   border: 1px solid #e2e8f0;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  min-height: 54px;
+  min-height: 90px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
@@ -97,12 +98,14 @@ body {
 
 .profile-pill__name {
   font-weight: 600;
+  font-size: 15px;
 }
 
 .app__content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
+  align-items: start;
 }
 
 .card {
@@ -207,6 +210,8 @@ select {
   border: 1px dashed #cbd5f5;
   padding: 10px 14px;
   background: #f8fafc;
+  white-space: nowrap;
+  height: 42px;
 }
 
 .field-with-action .ghost:hover {
@@ -275,12 +280,13 @@ button.ghost:hover {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .stat {
   background: #f8fafc;
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 10px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -301,6 +307,7 @@ button.ghost:hover {
 .summary__controls {
   display: flex;
   justify-content: flex-end;
+  margin-top: -4px;
 }
 
 .summary__controls label {
