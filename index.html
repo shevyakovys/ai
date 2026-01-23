@@ -13,8 +13,8 @@
           <p class="app__eyebrow">Личный бюджет</p>
           <h1>Учет расходов по категориям</h1>
           <p class="app__subtitle">
-            Добавляйте расходы, создавайте собственные категории, фильтруйте записи и ведите учет
-            по нескольким профилям.
+            Войдите в профиль, добавляйте расходы, создавайте собственные категории и быстро
+            фильтруйте данные.
           </p>
         </div>
         <div class="app__total">
@@ -23,20 +23,82 @@
         </div>
       </header>
 
-      <main class="app__content">
-        <section class="card">
-          <h2>Профили пользователей</h2>
-          <div class="profile">
+      <section id="authSection" class="card auth">
+        <div>
+          <h2>Вход или регистрация</h2>
+          <p class="hint">Создайте профиль, чтобы сохранять расходы в персональной базе данных.</p>
+        </div>
+        <div class="auth__forms">
+          <form id="loginForm" class="form">
+            <h3>Вход</h3>
             <label>
-              Активный профиль
-              <select id="profileSelect"></select>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" required />
             </label>
-            <form id="profileForm" class="inline-form">
-              <input type="text" name="profileName" placeholder="Новый профиль" required />
-              <button type="submit">Добавить</button>
-            </form>
+            <label>
+              Пароль
+              <input type="password" name="password" placeholder="••••••" required />
+            </label>
+            <button type="submit">Войти</button>
+            <p id="loginMessage" class="message"></p>
+          </form>
+
+          <form id="registerForm" class="form">
+            <h3>Регистрация</h3>
+            <label>
+              Имя
+              <input type="text" name="name" placeholder="Анна" required />
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Пароль
+              <input type="password" name="password" placeholder="Минимум 6 символов" required />
+            </label>
+            <button type="submit">Создать профиль</button>
+            <p id="registerMessage" class="message"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="filtersBar" class="filters-bar">
+        <div class="filters-bar__header">
+          <h2>Фильтры</h2>
+          <button id="resetFilters" class="ghost">Сбросить</button>
+        </div>
+        <form id="filterForm" class="filters-form">
+          <label>
+            Категория
+            <select name="category" id="filterCategory"></select>
+          </label>
+          <label>
+            Период с
+            <input type="date" name="startDate" />
+          </label>
+          <label>
+            Период по
+            <input type="date" name="endDate" />
+          </label>
+          <label>
+            Поиск по названию
+            <input type="text" name="search" placeholder="Например, продукты" />
+          </label>
+        </form>
+      </section>
+
+      <main id="appContent" class="app__content">
+        <section class="card">
+          <h2>Профиль пользователя</h2>
+          <div class="profile">
+            <div>
+              <p class="profile__name" id="userName">—</p>
+              <p class="profile__email" id="userEmail">—</p>
+            </div>
+            <button id="logoutButton" class="ghost">Выйти</button>
           </div>
-          <p class="hint">Каждый профиль хранит собственные расходы и категории.</p>
+          <p class="hint">Все расходы и категории сохраняются в базе данных профиля.</p>
         </section>
 
         <section class="card">
@@ -68,31 +130,6 @@
               <input type="date" name="date" required />
             </label>
             <button type="submit">Добавить</button>
-          </form>
-        </section>
-
-        <section class="card">
-          <div class="card__header">
-            <h2>Фильтры</h2>
-            <button id="resetFilters" class="ghost">Сбросить</button>
-          </div>
-          <form id="filterForm" class="form">
-            <label>
-              Категория
-              <select name="category" id="filterCategory"></select>
-            </label>
-            <label>
-              Период с
-              <input type="date" name="startDate" />
-            </label>
-            <label>
-              Период по
-              <input type="date" name="endDate" />
-            </label>
-            <label>
-              Поиск по названию
-              <input type="text" name="search" placeholder="Например, продукты" />
-            </label>
           </form>
         </section>
 

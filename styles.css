@@ -20,7 +20,7 @@ body {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
 }
 
 .app__header {
@@ -119,8 +119,21 @@ h3 {
 }
 
 .profile {
-  display: grid;
+  display: flex;
+  justify-content: space-between;
   gap: 16px;
+  align-items: center;
+}
+
+.profile__name {
+  margin: 0;
+  font-weight: 600;
+}
+
+.profile__email {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .hint {
@@ -172,6 +185,51 @@ button.ghost:hover {
   transform: none;
   box-shadow: none;
   text-decoration: underline;
+}
+
+.filters-bar {
+  background: #ffffff;
+  padding: 16px 24px;
+  border-radius: 18px;
+  box-shadow: 0 14px 30px rgba(148, 163, 184, 0.2);
+  display: grid;
+  gap: 16px;
+}
+
+.filters-bar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.filters-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.auth {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth__forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.message {
+  margin: 0;
+  font-size: 13px;
+  color: #b91c1c;
+  min-height: 18px;
+}
+
+.message--success {
+  color: #15803d;
 }
 
 .chip-list {

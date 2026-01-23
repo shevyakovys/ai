@@ -5,16 +5,24 @@ const totalAmount = document.getElementById("totalAmount");
 const categorySummary = document.getElementById("categorySummary");
 const emptyState = document.getElementById("emptyState");
 const clearAllButton = document.getElementById("clearAll");
-const profileSelect = document.getElementById("profileSelect");
-const profileForm = document.getElementById("profileForm");
 const categoryForm = document.getElementById("categoryForm");
 const categoryList = document.getElementById("categoryList");
 const categorySelect = document.getElementById("categorySelect");
 const filterForm = document.getElementById("filterForm");
 const filterCategory = document.getElementById("filterCategory");
 const resetFilters = document.getElementById("resetFilters");
+const authSection = document.getElementById("authSection");
+const appContent = document.getElementById("appContent");
+const filtersBar = document.getElementById("filtersBar");
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+const loginMessage = document.getElementById("loginMessage");
+const registerMessage = document.getElementById("registerMessage");
+const logoutButton = document.getElementById("logoutButton");
+const userName = document.getElementById("userName");
+const userEmail = document.getElementById("userEmail");
 
-const STORAGE_KEY = "expenses-data";
+const STORAGE_KEY = "expenses-db";
 const DEFAULT_CATEGORIES = [
   "Еда",
   "Транспорт",
@@ -32,9 +40,11 @@ const formatCurrency = (value) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-const createProfile = (name) => ({
+const createUser = ({ name, email, password }) => ({
   id: crypto.randomUUID(),
   name,
+  email,
+  password,
   categories: DEFAULT_CATEGORIES.map((category) => ({
     name: category,
     locked: true,
@@ -45,17 +55,14 @@ const createProfile = (name) => ({
 const loadState = () => {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
-    const profile = createProfile("Основной");
-    return { profiles: [profile], activeProfileId: profile.id };
+    return { users: [], activeUserId: null };
   }
 
   const parsed = JSON.parse(stored);
-  if (!parsed.profiles || !parsed.profiles.length) {
-    const profile = createProfile("Основной");
-    return { profiles: [profile], activeProfileId: profile.id };
-  }
-
-  return parsed;
+  return {
+    users: parsed.users || [],
+    activeUserId: parsed.activeUserId || null,
+  };
 };
 
 const saveState = () => {
@@ -64,14 +71,20 @@ const saveState = () => {
 
 let state = loadState();
 
-const getActiveProfile = () =>
-  state.profiles.find((profile) => profile.id === state.activeProfileId) ||
-  state.profiles[0];
+const getActiveUser = () =>
+  state.users.find((user) => user.id === state.activeUserId) || null;
 
-const setActiveProfile = (id) => {
-  state.activeProfileId = id;
+const setActiveUser = (id) => {
+  state.activeUserId = id;
   saveState();
   syncUI();
+};
+
+const toggleAuthView = () => {
+  const isAuthenticated = Boolean(getActiveUser());
+  authSection.style.display = isAuthenticated ? "none" : "flex";
+  appContent.style.display = isAuthenticated ? "grid" : "none";
+  filtersBar.style.display = isAuthenticated ? "grid" : "none";
 };
 
 const buildCategoryOptions = (categories, select, includeAll = false) => {
@@ -99,23 +112,15 @@ const buildCategoryOptions = (categories, select, includeAll = false) => {
   });
 };
 
-const renderProfiles = () => {
-  profileSelect.innerHTML = "";
-  state.profiles.forEach((profile) => {
-    const option = document.createElement("option");
-    option.value = profile.id;
-    option.textContent = profile.name;
-    profileSelect.appendChild(option);
-  });
-
-  profileSelect.value = getActiveProfile().id;
-};
-
 const renderCategories = () => {
-  const activeProfile = getActiveProfile();
+  const activeUser = getActiveUser();
+  if (!activeUser) {
+    return;
+  }
+
   categoryList.innerHTML = "";
 
-  activeProfile.categories.forEach((category) => {
+  activeUser.categories.forEach((category) => {
     const chip = document.createElement("span");
     chip.className = "chip";
     chip.textContent = category.name;
@@ -131,8 +136,8 @@ const renderCategories = () => {
     categoryList.appendChild(chip);
   });
 
-  buildCategoryOptions(activeProfile.categories, categorySelect);
-  buildCategoryOptions(activeProfile.categories, filterCategory, true);
+  buildCategoryOptions(activeUser.categories, categorySelect);
+  buildCategoryOptions(activeUser.categories, filterCategory, true);
 };
 
 const getFilters = () => {
@@ -228,71 +233,160 @@ const renderList = (filteredExpenses) => {
     });
 };
 
+const renderUserProfile = () => {
+  const activeUser = getActiveUser();
+  if (!activeUser) {
+    userName.textContent = "—";
+    userEmail.textContent = "—";
+    return;
+  }
+
+  userName.textContent = activeUser.name;
+  userEmail.textContent = activeUser.email;
+};
+
 const render = () => {
-  const activeProfile = getActiveProfile();
-  const filteredExpenses = applyFilters(activeProfile.expenses);
+  const activeUser = getActiveUser();
+  if (!activeUser) {
+    return;
+  }
+
+  const filteredExpenses = applyFilters(activeUser.expenses);
   renderList(filteredExpenses);
   renderTotals(filteredExpenses);
 };
 
 const syncUI = () => {
-  renderProfiles();
+  toggleAuthView();
+  renderUserProfile();
   renderCategories();
   render();
 };
 
 const removeExpense = (id) => {
-  const activeProfile = getActiveProfile();
-  activeProfile.expenses = activeProfile.expenses.filter((expense) => expense.id !== id);
+  const activeUser = getActiveUser();
+  if (!activeUser) {
+    return;
+  }
+
+  activeUser.expenses = activeUser.expenses.filter((expense) => expense.id !== id);
   saveState();
   render();
 };
 
-const addProfile = (name) => {
-  const trimmed = name.trim();
-  if (!trimmed) {
-    return;
-  }
-
-  const profile = createProfile(trimmed);
-  state.profiles.push(profile);
-  state.activeProfileId = profile.id;
-  saveState();
-  syncUI();
-};
-
 const addCategory = (name) => {
-  const activeProfile = getActiveProfile();
+  const activeUser = getActiveUser();
+  if (!activeUser) {
+    return;
+  }
+
   const trimmed = name.trim();
   if (!trimmed) {
     return;
   }
 
-  const exists = activeProfile.categories.some(
+  const exists = activeUser.categories.some(
     (category) => category.name.toLowerCase() === trimmed.toLowerCase()
   );
   if (exists) {
     return;
   }
 
-  activeProfile.categories.push({ name: trimmed, locked: false });
+  activeUser.categories.push({ name: trimmed, locked: false });
   saveState();
   renderCategories();
 };
 
 const removeCategory = (name) => {
-  const activeProfile = getActiveProfile();
-  activeProfile.categories = activeProfile.categories.filter(
+  const activeUser = getActiveUser();
+  if (!activeUser) {
+    return;
+  }
+
+  activeUser.categories = activeUser.categories.filter(
     (category) => category.name !== name || category.locked
   );
 
-  activeProfile.expenses = activeProfile.expenses.filter(
+  activeUser.expenses = activeUser.expenses.filter(
     (expense) => expense.category !== name
   );
 
   saveState();
   renderCategories();
   render();
+};
+
+const addExpense = ({ title, category, amount, date }) => {
+  const activeUser = getActiveUser();
+  if (!activeUser) {
+    return;
+  }
+
+  activeUser.expenses.unshift({
+    id: crypto.randomUUID(),
+    title,
+    category,
+    amount,
+    date,
+  });
+
+  saveState();
+  render();
+};
+
+const registerUser = ({ name, email, password }) => {
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim().toLowerCase();
+  const trimmedPassword = password.trim();
+
+  if (trimmedPassword.length < 6) {
+    registerMessage.textContent = "Пароль должен быть минимум 6 символов.";
+    return;
+  }
+
+  const exists = state.users.some((user) => user.email === trimmedEmail);
+  if (exists) {
+    registerMessage.textContent = "Пользователь с таким email уже существует.";
+    return;
+  }
+
+  const user = createUser({
+    name: trimmedName,
+    email: trimmedEmail,
+    password: trimmedPassword,
+  });
+  state.users.push(user);
+  state.activeUserId = user.id;
+  saveState();
+  registerMessage.textContent = "Профиль создан, вы вошли в систему.";
+  registerMessage.classList.add("message--success");
+  registerForm.reset();
+  syncUI();
+};
+
+const loginUser = ({ email, password }) => {
+  const trimmedEmail = email.trim().toLowerCase();
+  const trimmedPassword = password.trim();
+
+  const user = state.users.find(
+    (item) => item.email === trimmedEmail && item.password === trimmedPassword
+  );
+
+  if (!user) {
+    loginMessage.textContent = "Неверный email или пароль.";
+    return;
+  }
+
+  setActiveUser(user.id);
+  loginMessage.textContent = "";
+  loginForm.reset();
+};
+
+const logoutUser = () => {
+  state.activeUserId = null;
+  saveState();
+  filterForm.reset();
+  syncUI();
 };
 
 form.addEventListener("submit", (event) => {
@@ -307,30 +401,9 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  const activeProfile = getActiveProfile();
-  activeProfile.expenses.unshift({
-    id: crypto.randomUUID(),
-    title,
-    category,
-    amount,
-    date,
-  });
-
-  saveState();
+  addExpense({ title, category, amount, date });
   form.reset();
   form.elements.date.value = new Date().toISOString().split("T")[0];
-  render();
-});
-
-profileSelect.addEventListener("change", (event) => {
-  setActiveProfile(event.target.value);
-});
-
-profileForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const formData = new FormData(profileForm);
-  addProfile(formData.get("profileName"));
-  profileForm.reset();
 });
 
 categoryForm.addEventListener("submit", (event) => {
@@ -350,17 +423,43 @@ resetFilters.addEventListener("click", () => {
 });
 
 clearAllButton.addEventListener("click", () => {
-  const activeProfile = getActiveProfile();
-  if (!activeProfile.expenses.length) {
+  const activeUser = getActiveUser();
+  if (!activeUser || !activeUser.expenses.length) {
     return;
   }
 
   const confirmed = window.confirm("Удалить все расходы текущего профиля?");
   if (confirmed) {
-    activeProfile.expenses = [];
+    activeUser.expenses = [];
     saveState();
     render();
   }
+});
+
+loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  loginMessage.textContent = "";
+  const formData = new FormData(loginForm);
+  loginUser({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+});
+
+registerForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  registerMessage.textContent = "";
+  registerMessage.classList.remove("message--success");
+  const formData = new FormData(registerForm);
+  registerUser({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+});
+
+logoutButton.addEventListener("click", () => {
+  logoutUser();
 });
 
 const today = new Date().toISOString().split("T")[0];
