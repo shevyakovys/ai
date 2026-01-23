@@ -109,15 +109,6 @@
 
       <main id="appContent" class="app__content">
         <section class="card">
-          <h2>Добавить категорию</h2>
-          <form id="categoryForm" class="inline-form">
-            <input type="text" name="categoryName" placeholder="Например, Питомцы" required />
-            <button type="submit">Добавить</button>
-          </form>
-          <div id="categoryList" class="chip-list"></div>
-        </section>
-
-        <section class="card">
           <h2>Добавить расход</h2>
           <form id="expenseForm" class="form">
             <label>
@@ -205,6 +196,14 @@
             <p class="profile__name" id="userName">—</p>
             <p class="profile__email" id="userEmail">—</p>
             <p class="hint">Все расходы и категории сохраняются в базе данных профиля.</p>
+            <div class="profile-modal__categories">
+              <h3>Мои категории</h3>
+              <form id="categoryForm" class="inline-form">
+                <input type="text" name="categoryName" placeholder="Например, Питомцы" required />
+                <button type="submit">Добавить</button>
+              </form>
+              <div id="categoryList" class="chip-list"></div>
+            </div>
             <div class="profile-modal__actions">
               <button id="shareButton" type="button">Поделиться ссылкой</button>
               <button id="logoutButton" class="ghost" type="button">Выйти</button>

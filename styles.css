@@ -51,6 +51,7 @@ body {
   flex-wrap: wrap;
   gap: 16px;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .app__total {
@@ -78,11 +79,12 @@ body {
   background: #ffffff;
   color: #111827;
   border-radius: 999px;
-  padding: 10px 16px;
+  padding: 10px 18px;
   border: 1px solid #e2e8f0;
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  min-height: 54px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
@@ -198,6 +200,18 @@ select {
 
 .field-with-action select {
   flex: 1 1 auto;
+}
+
+.field-with-action .ghost {
+  border-radius: 12px;
+  border: 1px dashed #cbd5f5;
+  padding: 10px 14px;
+  background: #f8fafc;
+}
+
+.field-with-action .ghost:hover {
+  text-decoration: none;
+  border-color: #94a3b8;
 }
 
 button {
@@ -399,6 +413,15 @@ button.ghost:hover {
 .profile-modal__info {
   display: grid;
   gap: 10px;
+}
+
+.profile-modal__categories {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
 
 .profile-modal__actions {
