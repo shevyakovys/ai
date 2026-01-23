@@ -19,10 +19,21 @@ const registerForm = document.getElementById("registerForm");
 const loginMessage = document.getElementById("loginMessage");
 const registerMessage = document.getElementById("registerMessage");
 const logoutButton = document.getElementById("logoutButton");
+const profileButton = document.getElementById("profileButton");
+const profileShortName = document.getElementById("profileShortName");
 const userName = document.getElementById("userName");
 const userEmail = document.getElementById("userEmail");
 const totalCount = document.getElementById("totalCount");
 const filteredCount = document.getElementById("filteredCount");
+const profileModal = document.getElementById("profileModal");
+const categoryModal = document.getElementById("categoryModal");
+const categoryModalForm = document.getElementById("categoryModalForm");
+const openCategoryModal = document.getElementById("openCategoryModal");
+const avatarInput = document.getElementById("avatarInput");
+const avatarPreview = document.getElementById("avatarPreview");
+const shareButton = document.getElementById("shareButton");
+const shareMessage = document.getElementById("shareMessage");
+const summaryPeriod = document.getElementById("summaryPeriod");
 
 const STORAGE_KEY = "expenses-db";
 const DEFAULT_CATEGORIES = [
@@ -47,6 +58,7 @@ const createUser = ({ name, email, password }) => ({
   name,
   email,
   password,
+  avatar: "",
   categories: DEFAULT_CATEGORIES.map((category) => ({
     name: category,
     locked: true,
@@ -87,6 +99,19 @@ const toggleAuthView = () => {
   authSection.style.display = isAuthenticated ? "none" : "flex";
   appContent.style.display = isAuthenticated ? "grid" : "none";
   filtersBar.style.display = isAuthenticated ? "grid" : "none";
+};
+
+const toggleModal = (modal, isOpen) => {
+  modal.classList.toggle("is-open", isOpen);
+};
+
+const attachModalHandlers = () => {
+  document.querySelectorAll("[data-close-modal]").forEach((button) => {
+    button.addEventListener("click", () => {
+      toggleModal(profileModal, false);
+      toggleModal(categoryModal, false);
+    });
+  });
 };
 
 const buildCategoryOptions = (categories, select, includeAll = false) => {
@@ -176,11 +201,47 @@ const applyFilters = (expenses) => {
   });
 };
 
+const filterByPeriod = (expenses) => {
+  const period = summaryPeriod.value;
+  if (period === "all") {
+    return expenses;
+  }
+
+  const now = new Date();
+  const start = new Date(now);
+
+  if (period === "day") {
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "week") {
+    const day = (now.getDay() + 6) % 7;
+    start.setDate(now.getDate() - day);
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "month") {
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "quarter") {
+    const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+    start.setMonth(quarterStartMonth, 1);
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "half-year") {
+    const halfYearStartMonth = now.getMonth() < 6 ? 0 : 6;
+    start.setMonth(halfYearStartMonth, 1);
+    start.setHours(0, 0, 0, 0);
+  } else if (period === "year") {
+    start.setMonth(0, 1);
+    start.setHours(0, 0, 0, 0);
+  }
+
+  return expenses.filter((expense) => new Date(expense.date) >= start);
+};
+
 const renderTotals = (filteredExpenses) => {
   const total = filteredExpenses.reduce((sum, item) => sum + item.amount, 0);
   totalAmount.textContent = formatCurrency(total);
 
-  const summary = filteredExpenses.reduce((acc, item) => {
+  const periodExpenses = filterByPeriod(filteredExpenses);
+
+  const summary = periodExpenses.reduce((acc, item) => {
     acc[item.category] = (acc[item.category] || 0) + item.amount;
     return acc;
   }, {});
@@ -240,11 +301,15 @@ const renderUserProfile = () => {
   if (!activeUser) {
     userName.textContent = "—";
     userEmail.textContent = "—";
+    profileShortName.textContent = "—";
+    avatarPreview.removeAttribute("src");
     return;
   }
 
   userName.textContent = activeUser.name;
   userEmail.textContent = activeUser.email;
+  profileShortName.textContent = activeUser.name;
+  avatarPreview.src = activeUser.avatar || "https://placehold.co/120x120?text=MF";
 };
 
 const render = () => {
@@ -366,6 +431,7 @@ const registerUser = ({ name, email, password }) => {
   registerMessage.classList.add("message--success");
   registerForm.reset();
   syncUI();
+  toggleModal(profileModal, true);
 };
 
 const loginUser = ({ email, password }) => {
@@ -391,6 +457,36 @@ const logoutUser = () => {
   saveState();
   filterForm.reset();
   syncUI();
+};
+
+const updateAvatar = (file) => {
+  const activeUser = getActiveUser();
+  if (!activeUser || !file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    activeUser.avatar = reader.result;
+    saveState();
+    renderUserProfile();
+  };
+  reader.readAsDataURL(file);
+};
+
+const shareProfileLink = async () => {
+  const activeUser = getActiveUser();
+  if (!activeUser) {
+    return;
+  }
+
+  const url = `${window.location.origin}${window.location.pathname}?user=${activeUser.id}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    shareMessage.textContent = "Ссылка скопирована в буфер обмена.";
+  } catch (error) {
+    shareMessage.textContent = "Не удалось скопировать ссылку.";
+  }
 };
 
 form.addEventListener("submit", (event) => {
@@ -423,6 +519,10 @@ filterForm.addEventListener("input", () => {
 
 resetFilters.addEventListener("click", () => {
   filterForm.reset();
+  render();
+});
+
+summaryPeriod.addEventListener("change", () => {
   render();
 });
 
@@ -466,7 +566,32 @@ logoutButton.addEventListener("click", () => {
   logoutUser();
 });
 
+profileButton.addEventListener("click", () => {
+  toggleModal(profileModal, true);
+});
+
+openCategoryModal.addEventListener("click", () => {
+  toggleModal(categoryModal, true);
+});
+
+categoryModalForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const formData = new FormData(categoryModalForm);
+  addCategory(formData.get("categoryName"));
+  categoryModalForm.reset();
+  toggleModal(categoryModal, false);
+});
+
+avatarInput.addEventListener("change", (event) => {
+  updateAvatar(event.target.files[0]);
+});
+
+shareButton.addEventListener("click", () => {
+  shareProfileLink();
+});
+
 const today = new Date().toISOString().split("T")[0];
 form.elements.date.value = today;
 
+attachModalHandlers();
 syncUI();
