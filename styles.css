@@ -79,14 +79,16 @@ body {
 .profile-pill {
   background: #ffffff;
   color: #111827;
-  border-radius: 999px;
-  padding: 12px 20px;
+  border-radius: 18px;
+  padding: 20px 24px;
   border: 1px solid #e2e8f0;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   min-height: 90px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  min-width: 200px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
 .profile-pill__label {
@@ -106,6 +108,7 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   align-items: start;
+  grid-auto-rows: 1fr;
 }
 
 .card {
@@ -116,6 +119,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100%;
 }
 
 .card__header {
@@ -123,6 +127,14 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card__control {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
 }
 
 h1 {
@@ -304,15 +316,6 @@ button.ghost:hover {
   font-size: 20px;
 }
 
-.summary__controls {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: -4px;
-}
-
-.summary__controls label {
-  max-width: 200px;
-}
 
 .auth {
   display: flex;
