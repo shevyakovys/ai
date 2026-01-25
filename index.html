@@ -34,9 +34,12 @@
           <h2>Вход или регистрация</h2>
           <p class="hint">Создайте профиль, чтобы сохранять расходы в персональной базе данных.</p>
         </div>
+        <div class="auth__tabs">
+          <button class="auth__tab auth__tab--active" type="button" data-auth-tab="login">Вход</button>
+          <button class="auth__tab" type="button" data-auth-tab="register">Регистрация</button>
+        </div>
         <div class="auth__forms">
-          <form id="loginForm" class="form">
-            <h3>Вход</h3>
+          <form id="loginForm" class="form auth__panel" data-auth-view="login">
             <label>
               Email
               <input type="email" name="email" placeholder="you@example.com" required />
@@ -49,8 +52,7 @@
             <p id="loginMessage" class="message"></p>
           </form>
 
-          <form id="registerForm" class="form">
-            <h3>Регистрация</h3>
+          <form id="registerForm" class="form auth__panel is-hidden" data-auth-view="register">
             <label>
               Имя
               <input type="text" name="name" placeholder="Анна" required />

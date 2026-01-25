@@ -35,17 +35,11 @@ const shareButton = document.getElementById("shareButton");
 const shareMessage = document.getElementById("shareMessage");
 const summaryPeriod = document.getElementById("summaryPeriod");
 const quickFilterButtons = document.querySelectorAll("[data-quick-filter]");
+const authTabs = document.querySelectorAll("[data-auth-tab]");
+const authPanels = document.querySelectorAll("[data-auth-view]");
 
-const STORAGE_KEY = "expenses-db";
-const DEFAULT_CATEGORIES = [
-  "Еда",
-  "Транспорт",
-  "Дом",
-  "Развлечения",
-  "Здоровье",
-  "Обучение",
-  "Другое",
-];
+const API_BASE = "/api";
+const TOKEN_KEY = "auth_token";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("ru-RU", {
@@ -54,52 +48,45 @@ const formatCurrency = (value) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-const createUser = ({ name, email, password }) => ({
-  id: crypto.randomUUID(),
-  name,
-  email,
-  password,
-  avatar: "",
-  categories: DEFAULT_CATEGORIES.map((category) => ({
-    name: category,
-    locked: true,
-  })),
+let state = {
+  user: null,
+  categories: [],
   expenses: [],
-});
+};
 
-const loadState = () => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    return { users: [], activeUserId: null };
+const apiFetch = async (path, options = {}) => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
-  const parsed = JSON.parse(stored);
-  return {
-    users: parsed.users || [],
-    activeUserId: parsed.activeUserId || null,
-  };
-};
+  if (options.body && !(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
 
-const saveState = () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-};
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+  });
 
-let state = loadState();
+  if (response.status === 401) {
+    logoutUser();
+  }
 
-const getActiveUser = () =>
-  state.users.find((user) => user.id === state.activeUserId) || null;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Ошибка запроса");
+  }
 
-const setActiveUser = (id) => {
-  state.activeUserId = id;
-  saveState();
-  syncUI();
-};
+  if (response.status === 204) {
+    return null;
+  }
 
-const toggleAuthView = () => {
-  const isAuthenticated = Boolean(getActiveUser());
-  authSection.style.display = isAuthenticated ? "none" : "flex";
-  appContent.style.display = isAuthenticated ? "grid" : "none";
-  filtersBar.style.display = isAuthenticated ? "grid" : "none";
+  return response.json();
 };
 
 const toggleModal = (modal, isOpen) => {
@@ -113,6 +100,37 @@ const attachModalHandlers = () => {
       toggleModal(categoryModal, false);
     });
   });
+};
+
+const setAuthView = (view) => {
+  authTabs.forEach((tab) => {
+    tab.classList.toggle("auth__tab--active", tab.dataset.authTab === view);
+  });
+  authPanels.forEach((panel) => {
+    panel.classList.toggle("is-hidden", panel.dataset.authView !== view);
+  });
+};
+
+const toggleAuthView = () => {
+  const isAuthenticated = Boolean(state.user);
+  authSection.style.display = isAuthenticated ? "none" : "flex";
+  appContent.style.display = isAuthenticated ? "grid" : "none";
+  filtersBar.style.display = isAuthenticated ? "grid" : "none";
+};
+
+const renderUserProfile = () => {
+  if (!state.user) {
+    userName.textContent = "—";
+    userEmail.textContent = "—";
+    profileShortName.textContent = "—";
+    avatarPreview.removeAttribute("src");
+    return;
+  }
+
+  userName.textContent = state.user.name;
+  userEmail.textContent = state.user.email;
+  profileShortName.textContent = state.user.name;
+  avatarPreview.src = state.user.avatar_url || "https://placehold.co/120x120?text=MF";
 };
 
 const buildCategoryOptions = (categories, select, includeAll = false) => {
@@ -132,40 +150,35 @@ const buildCategoryOptions = (categories, select, includeAll = false) => {
     select.appendChild(placeholder);
   }
 
-  categories.forEach(({ name }) => {
+  categories.forEach(({ id, name }) => {
     const option = document.createElement("option");
-    option.value = name;
+    option.value = id;
     option.textContent = name;
     select.appendChild(option);
   });
 };
 
 const renderCategories = () => {
-  const activeUser = getActiveUser();
-  if (!activeUser) {
-    return;
-  }
-
   categoryList.innerHTML = "";
 
-  activeUser.categories.forEach((category) => {
+  state.categories.forEach((category) => {
     const chip = document.createElement("span");
     chip.className = "chip";
     chip.textContent = category.name;
 
-    if (!category.locked) {
+    if (!category.is_default) {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = "✕";
-      button.addEventListener("click", () => removeCategory(category.name));
+      button.addEventListener("click", () => removeCategory(category.id));
       chip.appendChild(button);
     }
 
     categoryList.appendChild(chip);
   });
 
-  buildCategoryOptions(activeUser.categories, categorySelect);
-  buildCategoryOptions(activeUser.categories, filterCategory, true);
+  buildCategoryOptions(state.categories, categorySelect);
+  buildCategoryOptions(state.categories, filterCategory, true);
 };
 
 const getFilters = () => {
@@ -215,15 +228,15 @@ const applyFilters = (expenses) => {
   const minAmount = Number.parseFloat(filterForm.dataset.minAmount || "0");
 
   return expenses.filter((expense) => {
-    if (category !== "all" && expense.category !== category) {
+    if (category !== "all" && expense.category_id !== category) {
       return false;
     }
 
-    if (startDate && new Date(expense.date) < new Date(startDate)) {
+    if (startDate && new Date(expense.spent_on) < new Date(startDate)) {
       return false;
     }
 
-    if (endDate && new Date(expense.date) > new Date(endDate)) {
+    if (endDate && new Date(expense.spent_on) > new Date(endDate)) {
       return false;
     }
 
@@ -231,7 +244,7 @@ const applyFilters = (expenses) => {
       return false;
     }
 
-    if (minAmount && expense.amount < minAmount) {
+    if (minAmount && Number(expense.amount) < minAmount) {
       return false;
     }
 
@@ -270,17 +283,20 @@ const filterByPeriod = (expenses) => {
     start.setHours(0, 0, 0, 0);
   }
 
-  return expenses.filter((expense) => new Date(expense.date) >= start);
+  return expenses.filter((expense) => new Date(expense.spent_on) >= start);
 };
 
 const renderTotals = (filteredExpenses) => {
-  const total = filteredExpenses.reduce((sum, item) => sum + item.amount, 0);
+  const total = filteredExpenses.reduce((sum, item) => sum + Number(item.amount), 0);
   totalAmount.textContent = formatCurrency(total);
 
   const periodExpenses = filterByPeriod(filteredExpenses);
-
   const summary = periodExpenses.reduce((acc, item) => {
-    acc[item.category] = (acc[item.category] || 0) + item.amount;
+    const category = state.categories.find((cat) => cat.id === item.category_id);
+    if (!category) {
+      return acc;
+    }
+    acc[category.name] = (acc[category.name] || 0) + Number(item.amount);
     return acc;
   }, {});
 
@@ -313,7 +329,7 @@ const renderList = (filteredExpenses) => {
 
   filteredExpenses
     .slice()
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => new Date(b.spent_on) - new Date(a.spent_on))
     .forEach((expense) => {
       const clone = template.content.cloneNode(true);
       const item = clone.querySelector(".expense-item");
@@ -322,11 +338,12 @@ const renderList = (filteredExpenses) => {
       const amount = clone.querySelector(".expense-item__amount");
       const removeButton = clone.querySelector(".expense-item__remove");
 
+      const category = state.categories.find((cat) => cat.id === expense.category_id);
       title.textContent = expense.title;
-      meta.textContent = `${expense.category} · ${new Date(expense.date).toLocaleDateString(
-        "ru-RU"
-      )}`;
-      amount.textContent = formatCurrency(expense.amount);
+      meta.textContent = `${category ? category.name : ""} · ${new Date(
+        expense.spent_on
+      ).toLocaleDateString("ru-RU")}`;
+      amount.textContent = formatCurrency(Number(expense.amount));
       removeButton.addEventListener("click", () => removeExpense(expense.id));
 
       item.dataset.id = expense.id;
@@ -334,30 +351,13 @@ const renderList = (filteredExpenses) => {
     });
 };
 
-const renderUserProfile = () => {
-  const activeUser = getActiveUser();
-  if (!activeUser) {
-    userName.textContent = "—";
-    userEmail.textContent = "—";
-    profileShortName.textContent = "—";
-    avatarPreview.removeAttribute("src");
-    return;
-  }
-
-  userName.textContent = activeUser.name;
-  userEmail.textContent = activeUser.email;
-  profileShortName.textContent = activeUser.name;
-  avatarPreview.src = activeUser.avatar || "https://placehold.co/120x120?text=MF";
-};
-
 const render = () => {
-  const activeUser = getActiveUser();
-  if (!activeUser) {
+  if (!state.user) {
     return;
   }
 
-  const filteredExpenses = applyFilters(activeUser.expenses);
-  totalCount.textContent = activeUser.expenses.length;
+  const filteredExpenses = applyFilters(state.expenses);
+  totalCount.textContent = state.expenses.length;
   filteredCount.textContent = filteredExpenses.length;
   renderList(filteredExpenses);
   renderTotals(filteredExpenses);
@@ -370,155 +370,110 @@ const syncUI = () => {
   render();
 };
 
-const removeExpense = (id) => {
-  const activeUser = getActiveUser();
-  if (!activeUser) {
-    return;
-  }
-
-  activeUser.expenses = activeUser.expenses.filter((expense) => expense.id !== id);
-  saveState();
-  render();
+const fetchUserData = async () => {
+  state.user = await apiFetch("/me");
+  state.categories = await apiFetch("/categories");
+  state.expenses = await apiFetch("/expenses");
+  syncUI();
 };
 
-const addCategory = (name) => {
-  const activeUser = getActiveUser();
-  if (!activeUser) {
-    return;
-  }
+const loginUser = async ({ email, password }) => {
+  const response = await apiFetch("/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+  localStorage.setItem(TOKEN_KEY, response.token);
+  await fetchUserData();
+};
 
+const registerUser = async ({ name, email, password }) => {
+  const response = await apiFetch("/register", {
+    method: "POST",
+    body: JSON.stringify({ name, email, password }),
+  });
+  localStorage.setItem(TOKEN_KEY, response.token);
+  await fetchUserData();
+  toggleModal(profileModal, true);
+};
+
+const logoutUser = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  state = { user: null, categories: [], expenses: [] };
+  filterForm.reset();
+  syncUI();
+};
+
+const addCategory = async (name) => {
   const trimmed = name.trim();
   if (!trimmed) {
     return;
   }
 
-  const exists = activeUser.categories.some(
-    (category) => category.name.toLowerCase() === trimmed.toLowerCase()
-  );
-  if (exists) {
-    return;
-  }
-
-  activeUser.categories.push({ name: trimmed, locked: false });
-  saveState();
+  await apiFetch("/categories", {
+    method: "POST",
+    body: JSON.stringify({ name: trimmed }),
+  });
+  state.categories = await apiFetch("/categories");
   renderCategories();
 };
 
-const removeCategory = (name) => {
-  const activeUser = getActiveUser();
-  if (!activeUser) {
-    return;
-  }
-
-  activeUser.categories = activeUser.categories.filter(
-    (category) => category.name !== name || category.locked
-  );
-
-  activeUser.expenses = activeUser.expenses.filter(
-    (expense) => expense.category !== name
-  );
-
-  saveState();
+const removeCategory = async (id) => {
+  await apiFetch(`/categories/${id}`, { method: "DELETE" });
+  state.categories = await apiFetch("/categories");
+  state.expenses = await apiFetch("/expenses");
   renderCategories();
   render();
 };
 
-const addExpense = ({ title, category, amount, date }) => {
-  const activeUser = getActiveUser();
-  if (!activeUser) {
-    return;
-  }
-
-  activeUser.expenses.unshift({
-    id: crypto.randomUUID(),
-    title,
-    category,
-    amount,
-    date,
+const addExpense = async ({ title, categoryId, amount, date }) => {
+  const newExpense = await apiFetch("/expenses", {
+    method: "POST",
+    body: JSON.stringify({
+      title,
+      amount,
+      spent_on: date,
+      category_id: categoryId,
+    }),
   });
-
-  saveState();
+  state.expenses.unshift(newExpense);
   render();
 };
 
-const registerUser = ({ name, email, password }) => {
-  const trimmedName = name.trim();
-  const trimmedEmail = email.trim().toLowerCase();
-  const trimmedPassword = password.trim();
-
-  if (trimmedPassword.length < 6) {
-    registerMessage.textContent = "Пароль должен быть минимум 6 символов.";
-    return;
-  }
-
-  const exists = state.users.some((user) => user.email === trimmedEmail);
-  if (exists) {
-    registerMessage.textContent = "Пользователь с таким email уже существует.";
-    return;
-  }
-
-  const user = createUser({
-    name: trimmedName,
-    email: trimmedEmail,
-    password: trimmedPassword,
-  });
-  state.users.push(user);
-  state.activeUserId = user.id;
-  saveState();
-  registerMessage.textContent = "Профиль создан, вы вошли в систему.";
-  registerMessage.classList.add("message--success");
-  registerForm.reset();
-  syncUI();
-  toggleModal(profileModal, true);
+const removeExpense = async (id) => {
+  await apiFetch(`/expenses/${id}`, { method: "DELETE" });
+  state.expenses = state.expenses.filter((expense) => expense.id !== id);
+  render();
 };
 
-const loginUser = ({ email, password }) => {
-  const trimmedEmail = email.trim().toLowerCase();
-  const trimmedPassword = password.trim();
-
-  const user = state.users.find(
-    (item) => item.email === trimmedEmail && item.password === trimmedPassword
-  );
-
-  if (!user) {
-    loginMessage.textContent = "Неверный email или пароль.";
-    return;
-  }
-
-  setActiveUser(user.id);
-  loginMessage.textContent = "";
-  loginForm.reset();
-};
-
-const logoutUser = () => {
-  state.activeUserId = null;
-  saveState();
-  filterForm.reset();
-  syncUI();
+const clearAllExpenses = async () => {
+  await apiFetch("/expenses", { method: "DELETE" });
+  state.expenses = [];
+  render();
 };
 
 const updateAvatar = (file) => {
-  const activeUser = getActiveUser();
-  if (!activeUser || !file) {
+  if (!file || !state.user) {
     return;
   }
 
   const reader = new FileReader();
-  reader.onload = () => {
-    activeUser.avatar = reader.result;
-    saveState();
+  reader.onload = async () => {
+    await apiFetch("/me/avatar", {
+      method: "PATCH",
+      body: JSON.stringify({ avatar: reader.result }),
+    });
+    state.user.avatar_url = reader.result;
     renderUserProfile();
   };
   reader.readAsDataURL(file);
 };
 
 const shareProfileLink = async () => {
-  const activeUser = getActiveUser();
-  if (!activeUser) {
+  if (!state.user) {
     return;
   }
 
-  const url = `${window.location.origin}${window.location.pathname}?user=${activeUser.id}`;
+  const url = `${window.location.origin}${window.location.pathname}?user=${state.user.id}`;
   try {
     await navigator.clipboard.writeText(url);
     shareMessage.textContent = "Ссылка скопирована в буфер обмена.";
@@ -527,27 +482,27 @@ const shareProfileLink = async () => {
   }
 };
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(form);
   const title = formData.get("title").trim();
-  const category = formData.get("category");
+  const categoryId = formData.get("category");
   const amount = Number.parseFloat(formData.get("amount"));
   const date = formData.get("date");
 
-  if (!title || !category || !amount || !date) {
+  if (!title || !categoryId || !amount || !date) {
     return;
   }
 
-  addExpense({ title, category, amount, date });
+  await addExpense({ title, categoryId, amount, date });
   form.reset();
   form.elements.date.value = new Date().toISOString().split("T")[0];
 });
 
-categoryForm.addEventListener("submit", (event) => {
+categoryForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(categoryForm);
-  addCategory(formData.get("categoryName"));
+  await addCategory(formData.get("categoryName"));
   categoryForm.reset();
 });
 
@@ -565,40 +520,47 @@ summaryPeriod.addEventListener("change", () => {
   render();
 });
 
-clearAllButton.addEventListener("click", () => {
-  const activeUser = getActiveUser();
-  if (!activeUser || !activeUser.expenses.length) {
+clearAllButton.addEventListener("click", async () => {
+  if (!state.expenses.length) {
     return;
   }
 
   const confirmed = window.confirm("Удалить все расходы текущего профиля?");
   if (confirmed) {
-    activeUser.expenses = [];
-    saveState();
-    render();
+    await clearAllExpenses();
   }
 });
 
-loginForm.addEventListener("submit", (event) => {
+loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   loginMessage.textContent = "";
   const formData = new FormData(loginForm);
-  loginUser({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
+
+  try {
+    await loginUser({
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
+  } catch (error) {
+    loginMessage.textContent = error.message;
+  }
 });
 
-registerForm.addEventListener("submit", (event) => {
+registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   registerMessage.textContent = "";
   registerMessage.classList.remove("message--success");
   const formData = new FormData(registerForm);
-  registerUser({
-    name: formData.get("name"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
+
+  try {
+    await registerUser({
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
+  } catch (error) {
+    registerMessage.textContent = error.message;
+  }
 });
 
 logoutButton.addEventListener("click", () => {
@@ -613,10 +575,10 @@ openCategoryModal.addEventListener("click", () => {
   toggleModal(categoryModal, true);
 });
 
-categoryModalForm.addEventListener("submit", (event) => {
+categoryModalForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(categoryModalForm);
-  addCategory(formData.get("categoryName"));
+  await addCategory(formData.get("categoryName"));
   categoryModalForm.reset();
   toggleModal(categoryModal, false);
 });
@@ -635,8 +597,21 @@ quickFilterButtons.forEach((button) => {
   });
 });
 
+authTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    setAuthView(tab.dataset.authTab);
+  });
+});
+
 const today = new Date().toISOString().split("T")[0];
 form.elements.date.value = today;
 
 attachModalHandlers();
-syncUI();
+setAuthView("login");
+
+const existingToken = localStorage.getItem(TOKEN_KEY);
+if (existingToken) {
+  fetchUserData().catch(() => logoutUser());
+} else {
+  syncUI();
+}
