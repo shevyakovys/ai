@@ -104,6 +104,15 @@
             <span>В фильтре</span>
             <strong id="filteredCount">0</strong>
           </div>
+          <div class="filters-bar__quick">
+            <span class="filters-bar__label">Быстрые фильтры</span>
+            <div class="filters-bar__chips">
+              <button class="chip-button" type="button" data-quick-filter="today">Сегодня</button>
+              <button class="chip-button" type="button" data-quick-filter="week">7 дней</button>
+              <button class="chip-button" type="button" data-quick-filter="month">Этот месяц</button>
+              <button class="chip-button" type="button" data-quick-filter="big">Крупные траты</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -148,7 +157,6 @@
         <section class="card">
           <div class="card__header">
             <h2>Итоги по категориям</h2>
-          </div>
             <label class="card__control">
               Период
               <select id="summaryPeriod">
@@ -161,6 +169,7 @@
                 <option value="all">Все время</option>
               </select>
             </label>
+          </div>
           <div id="categorySummary" class="summary"></div>
         </section>
       </main>

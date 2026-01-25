@@ -34,6 +34,7 @@ const avatarPreview = document.getElementById("avatarPreview");
 const shareButton = document.getElementById("shareButton");
 const shareMessage = document.getElementById("shareMessage");
 const summaryPeriod = document.getElementById("summaryPeriod");
+const quickFilterButtons = document.querySelectorAll("[data-quick-filter]");
 
 const STORAGE_KEY = "expenses-db";
 const DEFAULT_CATEGORIES = [
@@ -177,8 +178,41 @@ const getFilters = () => {
   };
 };
 
+const setDateRange = (start, end) => {
+  filterForm.elements.startDate.value = start;
+  filterForm.elements.endDate.value = end;
+};
+
+const formatISODate = (date) => date.toISOString().split("T")[0];
+
+const applyQuickFilter = (key) => {
+  const now = new Date();
+  if (key === "today") {
+    const today = formatISODate(now);
+    setDateRange(today, today);
+    filterForm.dataset.minAmount = "";
+  } else if (key === "week") {
+    const start = new Date(now);
+    start.setDate(now.getDate() - 6);
+    setDateRange(formatISODate(start), formatISODate(now));
+    filterForm.dataset.minAmount = "";
+  } else if (key === "month") {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    setDateRange(formatISODate(start), formatISODate(now));
+    filterForm.dataset.minAmount = "";
+  } else if (key === "big") {
+    filterForm.elements.search.value = "";
+    setDateRange("", "");
+    filterForm.elements.category.value = "all";
+    filterForm.dataset.minAmount = "1000";
+  }
+
+  render();
+};
+
 const applyFilters = (expenses) => {
   const { category, startDate, endDate, search } = getFilters();
+  const minAmount = Number.parseFloat(filterForm.dataset.minAmount || "0");
 
   return expenses.filter((expense) => {
     if (category !== "all" && expense.category !== category) {
@@ -194,6 +228,10 @@ const applyFilters = (expenses) => {
     }
 
     if (search && !expense.title.toLowerCase().includes(search)) {
+      return false;
+    }
+
+    if (minAmount && expense.amount < minAmount) {
       return false;
     }
 
@@ -519,6 +557,7 @@ filterForm.addEventListener("input", () => {
 
 resetFilters.addEventListener("click", () => {
   filterForm.reset();
+  delete filterForm.dataset.minAmount;
   render();
 });
 
@@ -588,6 +627,12 @@ avatarInput.addEventListener("change", (event) => {
 
 shareButton.addEventListener("click", () => {
   shareProfileLink();
+});
+
+quickFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    applyQuickFilter(button.dataset.quickFilter);
+  });
 });
 
 const today = new Date().toISOString().split("T")[0];
