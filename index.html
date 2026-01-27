@@ -9,25 +9,31 @@
   <body>
     <div class="app">
       <header class="app__header">
-        <div>
-          <p class="app__eyebrow">Личный бюджет</p>
-          <h1>Учет расходов по категориям</h1>
-          <p class="app__subtitle">
-            Войдите в профиль, добавляйте расходы и смотрите аналитику по категориям. Быстрые
-            фильтры помогут найти нужные покупки за секунды.
-          </p>
+        <div class="app__balance">
+          <p class="app__eyebrow">Мой баланс</p>
+          <h1 id="balanceAmount">0 ₽</h1>
+          <p class="app__subtitle">Сводка по доходам и расходам за выбранный период.</p>
         </div>
-        <div class="app__meta">
-          <div class="app__total">
-            <span>Всего расходов</span>
-            <strong id="totalAmount">0 ₽</strong>
-          </div>
-          <button id="profileButton" class="profile-pill" type="button">
-            <span class="profile-pill__label">Профиль</span>
-            <span class="profile-pill__name" id="profileShortName">—</span>
-          </button>
-        </div>
+        <button id="profileButton" class="profile-pill" type="button">
+          <span class="profile-pill__label">Профиль</span>
+          <span class="profile-pill__name" id="profileShortName">—</span>
+        </button>
       </header>
+
+      <section class="summary-cards">
+        <div class="summary-card summary-card--income">
+          <span>Доходы</span>
+          <strong id="incomeTotal">0 ₽</strong>
+        </div>
+        <div class="summary-card summary-card--expense">
+          <span>Расходы</span>
+          <strong id="expenseTotal">0 ₽</strong>
+        </div>
+        <div class="summary-card">
+          <span>Доступный баланс</span>
+          <strong id="totalAmount">0 ₽</strong>
+        </div>
+      </section>
 
       <section id="authSection" class="card auth">
         <div>
@@ -79,6 +85,17 @@
           </div>
           <button id="resetFilters" class="ghost">Сбросить</button>
         </div>
+        <div class="filters-bar__toggle">
+          <button class="toggle-button is-active" type="button" data-transaction-type="all">
+            Все
+          </button>
+          <button class="toggle-button" type="button" data-transaction-type="income">
+            Доходы
+          </button>
+          <button class="toggle-button" type="button" data-transaction-type="expense">
+            Расходы
+          </button>
+        </div>
         <form id="filterForm" class="filters-form">
           <label>
             Категория
@@ -120,8 +137,14 @@
 
       <main id="appContent" class="app__content">
         <section class="card">
-          <h2>Добавить расход</h2>
+          <h2>Добавить операцию</h2>
           <form id="expenseForm" class="form">
+            <div class="form-toggle">
+              <button class="toggle-button is-active" type="button" data-form-type="expense">
+                Расход
+              </button>
+              <button class="toggle-button" type="button" data-form-type="income">Доход</button>
+            </div>
             <label>
               Название
               <input type="text" name="title" placeholder="Например, кофе" required />
@@ -147,7 +170,7 @@
 
         <section class="card">
           <div class="card__header">
-            <h2>Расходы</h2>
+            <h2>Последние операции</h2>
             <button id="clearAll" class="ghost">Очистить все</button>
           </div>
           <div id="emptyState" class="empty">
@@ -158,7 +181,7 @@
 
         <section class="card">
           <div class="card__header">
-            <h2>Итоги по категориям</h2>
+            <h2>Аналитика</h2>
             <label class="card__control">
               Период
               <select id="summaryPeriod">
@@ -172,6 +195,7 @@
               </select>
             </label>
           </div>
+          <canvas id="analyticsChart" height="220"></canvas>
           <div id="categorySummary" class="summary"></div>
         </section>
       </main>
@@ -209,6 +233,14 @@
             <p class="hint">Все расходы и категории сохраняются в базе данных профиля.</p>
             <div class="profile-modal__categories">
               <h3>Мои категории</h3>
+              <div class="form-toggle">
+                <button class="toggle-button is-active" type="button" data-category-type="expense">
+                  Расходы
+                </button>
+                <button class="toggle-button" type="button" data-category-type="income">
+                  Доходы
+                </button>
+              </div>
               <form id="categoryForm" class="inline-form">
                 <input type="text" name="categoryName" placeholder="Например, Питомцы" required />
                 <button type="submit">Добавить</button>

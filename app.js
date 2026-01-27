@@ -37,6 +37,13 @@ const summaryPeriod = document.getElementById("summaryPeriod");
 const quickFilterButtons = document.querySelectorAll("[data-quick-filter]");
 const authTabs = document.querySelectorAll("[data-auth-tab]");
 const authPanels = document.querySelectorAll("[data-auth-view]");
+const balanceAmount = document.getElementById("balanceAmount");
+const incomeTotal = document.getElementById("incomeTotal");
+const expenseTotal = document.getElementById("expenseTotal");
+const analyticsChart = document.getElementById("analyticsChart");
+const transactionTypeButtons = document.querySelectorAll("[data-transaction-type]");
+const formTypeButtons = document.querySelectorAll("[data-form-type]");
+const categoryTypeButtons = document.querySelectorAll("[data-category-type]");
 
 const API_BASE = "/api";
 const TOKEN_KEY = "auth_token";
@@ -53,6 +60,10 @@ let state = {
   categories: [],
   expenses: [],
 };
+
+let filterType = "all";
+let formType = "expense";
+let categoryType = "expense";
 
 const apiFetch = async (path, options = {}) => {
   const token = localStorage.getItem(TOKEN_KEY);
@@ -160,8 +171,9 @@ const buildCategoryOptions = (categories, select, includeAll = false) => {
 
 const renderCategories = () => {
   categoryList.innerHTML = "";
+  const visibleCategories = state.categories.filter((category) => category.type === categoryType);
 
-  state.categories.forEach((category) => {
+  visibleCategories.forEach((category) => {
     const chip = document.createElement("span");
     chip.className = "chip";
     chip.textContent = category.name;
@@ -177,8 +189,13 @@ const renderCategories = () => {
     categoryList.appendChild(chip);
   });
 
-  buildCategoryOptions(state.categories, categorySelect);
-  buildCategoryOptions(state.categories, filterCategory, true);
+  const formCategories = state.categories.filter((category) => category.type === formType);
+  buildCategoryOptions(formCategories, categorySelect);
+  const filterCategories =
+    filterType === "all"
+      ? state.categories
+      : state.categories.filter((category) => category.type === filterType);
+  buildCategoryOptions(filterCategories, filterCategory, true);
 };
 
 const getFilters = () => {
@@ -188,6 +205,7 @@ const getFilters = () => {
     startDate: data.get("startDate") || "",
     endDate: data.get("endDate") || "",
     search: data.get("search")?.toLowerCase().trim() || "",
+    type: filterType,
   };
 };
 
@@ -224,10 +242,14 @@ const applyQuickFilter = (key) => {
 };
 
 const applyFilters = (expenses) => {
-  const { category, startDate, endDate, search } = getFilters();
+  const { category, startDate, endDate, search, type } = getFilters();
   const minAmount = Number.parseFloat(filterForm.dataset.minAmount || "0");
 
   return expenses.filter((expense) => {
+    if (type !== "all" && expense.type !== type) {
+      return false;
+    }
+
     if (category !== "all" && expense.category_id !== category) {
       return false;
     }
@@ -287,8 +309,16 @@ const filterByPeriod = (expenses) => {
 };
 
 const renderTotals = (filteredExpenses) => {
-  const total = filteredExpenses.reduce((sum, item) => sum + Number(item.amount), 0);
-  totalAmount.textContent = formatCurrency(total);
+  const income = filteredExpenses.filter((item) => item.type === "income");
+  const expense = filteredExpenses.filter((item) => item.type === "expense");
+  const incomeSum = income.reduce((sum, item) => sum + Number(item.amount), 0);
+  const expenseSum = expense.reduce((sum, item) => sum + Number(item.amount), 0);
+  const total = incomeSum - expenseSum;
+
+  balanceAmount.textContent = formatCurrency(total);
+  totalAmount.textContent = formatCurrency(expenseSum);
+  incomeTotal.textContent = formatCurrency(incomeSum);
+  expenseTotal.textContent = formatCurrency(expenseSum);
 
   const periodExpenses = filterByPeriod(filteredExpenses);
   const summary = periodExpenses.reduce((acc, item) => {
@@ -316,6 +346,8 @@ const renderTotals = (filteredExpenses) => {
     )}</span>`;
     categorySummary.appendChild(item);
   });
+
+  renderChart(filteredExpenses);
 };
 
 const renderList = (filteredExpenses) => {
@@ -340,7 +372,8 @@ const renderList = (filteredExpenses) => {
 
       const category = state.categories.find((cat) => cat.id === expense.category_id);
       title.textContent = expense.title;
-      meta.textContent = `${category ? category.name : ""} · ${new Date(
+      const typeLabel = expense.type === "income" ? "Доход" : "Расход";
+      meta.textContent = `${typeLabel} · ${category ? category.name : ""} · ${new Date(
         expense.spent_on
       ).toLocaleDateString("ru-RU")}`;
       amount.textContent = formatCurrency(Number(expense.amount));
@@ -361,6 +394,68 @@ const render = () => {
   filteredCount.textContent = filteredExpenses.length;
   renderList(filteredExpenses);
   renderTotals(filteredExpenses);
+};
+
+const renderChart = (expenses) => {
+  if (!analyticsChart) {
+    return;
+  }
+
+  const ctx = analyticsChart.getContext("2d");
+  const width = analyticsChart.width;
+  const height = analyticsChart.height;
+  ctx.clearRect(0, 0, width, height);
+
+  const days = 7;
+  const now = new Date();
+  const labels = [];
+  const incomeData = [];
+  const expenseData = [];
+
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const date = new Date(now);
+    date.setDate(now.getDate() - i);
+    const label = date.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+    labels.push(label);
+
+    const dayExpenses = expenses.filter(
+      (expense) => new Date(expense.spent_on).toDateString() === date.toDateString()
+    );
+    const incomeSum = dayExpenses
+      .filter((item) => item.type === "income")
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+    const expenseSum = dayExpenses
+      .filter((item) => item.type === "expense")
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+
+    incomeData.push(incomeSum);
+    expenseData.push(expenseSum);
+  }
+
+  const maxValue = Math.max(1, ...incomeData, ...expenseData);
+  const padding = 24;
+  const chartWidth = width - padding * 2;
+  const chartHeight = height - padding * 2;
+  const stepX = chartWidth / (days - 1);
+
+  const drawLine = (data, color) => {
+    ctx.beginPath();
+    data.forEach((value, index) => {
+      const x = padding + stepX * index;
+      const y = padding + chartHeight - (value / maxValue) * chartHeight;
+      if (index === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  };
+
+  drawLine(incomeData, "#16a34a");
+  drawLine(expenseData, "#ef4444");
 };
 
 const syncUI = () => {
@@ -411,7 +506,7 @@ const addCategory = async (name) => {
 
   await apiFetch("/categories", {
     method: "POST",
-    body: JSON.stringify({ name: trimmed }),
+    body: JSON.stringify({ name: trimmed, type: categoryType }),
   });
   state.categories = await apiFetch("/categories");
   renderCategories();
@@ -425,7 +520,7 @@ const removeCategory = async (id) => {
   render();
 };
 
-const addExpense = async ({ title, categoryId, amount, date }) => {
+const addExpense = async ({ title, categoryId, amount, date, type }) => {
   const newExpense = await apiFetch("/expenses", {
     method: "POST",
     body: JSON.stringify({
@@ -433,6 +528,7 @@ const addExpense = async ({ title, categoryId, amount, date }) => {
       amount,
       spent_on: date,
       category_id: categoryId,
+      type,
     }),
   });
   state.expenses.unshift(newExpense);
@@ -494,7 +590,7 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  await addExpense({ title, categoryId, amount, date });
+  await addExpense({ title, categoryId, amount, date, type: formType });
   form.reset();
   form.elements.date.value = new Date().toISOString().split("T")[0];
 });
@@ -600,6 +696,34 @@ quickFilterButtons.forEach((button) => {
 authTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     setAuthView(tab.dataset.authTab);
+  });
+});
+
+transactionTypeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    transactionTypeButtons.forEach((item) => item.classList.remove("is-active"));
+    button.classList.add("is-active");
+    filterType = button.dataset.transactionType;
+    renderCategories();
+    render();
+  });
+});
+
+formTypeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    formTypeButtons.forEach((item) => item.classList.remove("is-active"));
+    button.classList.add("is-active");
+    formType = button.dataset.formType;
+    renderCategories();
+  });
+});
+
+categoryTypeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    categoryTypeButtons.forEach((item) => item.classList.remove("is-active"));
+    button.classList.add("is-active");
+    categoryType = button.dataset.categoryType;
+    renderCategories();
   });
 });
 

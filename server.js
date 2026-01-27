@@ -19,15 +19,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const JWT_SECRET = process.env.JWT_SECRET || "change-me";
-const DEFAULT_CATEGORIES = [
-  "Еда",
-  "Транспорт",
-  "Дом",
-  "Развлечения",
-  "Здоровье",
-  "Обучение",
-  "Другое",
-];
+const DEFAULT_CATEGORIES = {
+  expense: [
+    "Еда",
+    "Транспорт",
+    "Дом",
+    "Развлечения",
+    "Здоровье",
+    "Обучение",
+    "Другое",
+  ],
+  income: ["Зарплата", "Фриланс", "Инвестиции", "Подарки"],
+};
 
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
@@ -77,15 +80,12 @@ app.post("/api/register", async (req, res) => {
       [userId, name, email, passwordHash]
     );
 
-    const categoryValues = DEFAULT_CATEGORIES.map((category) => [
-      uuidv4(),
-      userId,
-      category,
-      true,
-    ]);
+    const categoryValues = Object.entries(DEFAULT_CATEGORIES).flatMap(([type, items]) =>
+      items.map((category) => [uuidv4(), userId, category, type, true])
+    );
 
     const insertCategoryQuery =
-      "INSERT INTO categories (id, user_id, name, is_default) VALUES ($1, $2, $3, $4)";
+      "INSERT INTO categories (id, user_id, name, type, is_default) VALUES ($1, $2, $3, $4, $5)";
 
     for (const values of categoryValues) {
       await pool.query(insertCategoryQuery, values);
@@ -152,7 +152,7 @@ app.patch("/api/me/avatar", authenticate, async (req, res) => {
 app.get("/api/categories", authenticate, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, name, is_default FROM categories WHERE user_id = $1 ORDER BY created_at",
+      "SELECT id, name, type, is_default FROM categories WHERE user_id = $1 ORDER BY created_at",
       [req.user.id]
     );
     return res.json(result.rows);
@@ -162,15 +162,15 @@ app.get("/api/categories", authenticate, async (req, res) => {
 });
 
 app.post("/api/categories", authenticate, async (req, res) => {
-  const { name } = req.body;
-  if (!name) {
+  const { name, type } = req.body;
+  if (!name || !type) {
     return res.status(400).json({ error: "Missing name" });
   }
 
   try {
     const exists = await pool.query(
-      "SELECT id FROM categories WHERE user_id = $1 AND LOWER(name) = LOWER($2)",
-      [req.user.id, name]
+      "SELECT id FROM categories WHERE user_id = $1 AND LOWER(name) = LOWER($2) AND type = $3",
+      [req.user.id, name, type]
     );
     if (exists.rowCount) {
       return res.status(409).json({ error: "Category already exists" });
@@ -178,10 +178,10 @@ app.post("/api/categories", authenticate, async (req, res) => {
 
     const categoryId = uuidv4();
     await pool.query(
-      "INSERT INTO categories (id, user_id, name, is_default) VALUES ($1, $2, $3, $4)",
-      [categoryId, req.user.id, name, false]
+      "INSERT INTO categories (id, user_id, name, type, is_default) VALUES ($1, $2, $3, $4, $5)",
+      [categoryId, req.user.id, name, type, false]
     );
-    return res.json({ id: categoryId, name, is_default: false });
+    return res.json({ id: categoryId, name, type, is_default: false });
   } catch (error) {
     return res.status(500).json({ error: "Server error" });
   }
@@ -203,7 +203,7 @@ app.delete("/api/categories/:id", authenticate, async (req, res) => {
 app.get("/api/expenses", authenticate, async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, title, amount, spent_on, category_id FROM expenses WHERE user_id = $1 ORDER BY spent_on DESC",
+      "SELECT id, title, amount, spent_on, category_id, type FROM expenses WHERE user_id = $1 ORDER BY spent_on DESC",
       [req.user.id]
     );
     return res.json(result.rows);
@@ -213,18 +213,18 @@ app.get("/api/expenses", authenticate, async (req, res) => {
 });
 
 app.post("/api/expenses", authenticate, async (req, res) => {
-  const { title, amount, spent_on, category_id } = req.body;
-  if (!title || !amount || !spent_on || !category_id) {
+  const { title, amount, spent_on, category_id, type } = req.body;
+  if (!title || !amount || !spent_on || !category_id || !type) {
     return res.status(400).json({ error: "Missing fields" });
   }
 
   try {
     const id = uuidv4();
     await pool.query(
-      "INSERT INTO expenses (id, user_id, category_id, title, amount, spent_on) VALUES ($1, $2, $3, $4, $5, $6)",
-      [id, req.user.id, category_id, title, amount, spent_on]
+      "INSERT INTO expenses (id, user_id, category_id, title, amount, spent_on, type) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [id, req.user.id, category_id, title, amount, spent_on, type]
     );
-    return res.json({ id, title, amount, spent_on, category_id });
+    return res.json({ id, title, amount, spent_on, category_id, type });
   } catch (error) {
     return res.status(500).json({ error: "Server error" });
   }
