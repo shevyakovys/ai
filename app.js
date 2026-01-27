@@ -18,6 +18,7 @@ const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
 const loginMessage = document.getElementById("loginMessage");
 const registerMessage = document.getElementById("registerMessage");
+const authTitle = document.getElementById("authTitle");
 const logoutButton = document.getElementById("logoutButton");
 const profileButton = document.getElementById("profileButton");
 const profileShortName = document.getElementById("profileShortName");
@@ -35,8 +36,8 @@ const shareButton = document.getElementById("shareButton");
 const shareMessage = document.getElementById("shareMessage");
 const summaryPeriod = document.getElementById("summaryPeriod");
 const quickFilterButtons = document.querySelectorAll("[data-quick-filter]");
-const authTabs = document.querySelectorAll("[data-auth-tab]");
 const authPanels = document.querySelectorAll("[data-auth-view]");
+const authSwitchButtons = document.querySelectorAll("[data-auth-switch]");
 const balanceAmount = document.getElementById("balanceAmount");
 const incomeTotal = document.getElementById("incomeTotal");
 const expenseTotal = document.getElementById("expenseTotal");
@@ -114,12 +115,12 @@ const attachModalHandlers = () => {
 };
 
 const setAuthView = (view) => {
-  authTabs.forEach((tab) => {
-    tab.classList.toggle("auth__tab--active", tab.dataset.authTab === view);
-  });
   authPanels.forEach((panel) => {
     panel.classList.toggle("is-hidden", panel.dataset.authView !== view);
   });
+  if (authTitle) {
+    authTitle.textContent = view === "register" ? "Регистрация" : "Вход";
+  }
 };
 
 const toggleAuthView = () => {
@@ -143,6 +144,8 @@ const renderUserProfile = () => {
   profileShortName.textContent = state.user.name;
   avatarPreview.src = state.user.avatar_url || "https://placehold.co/120x120?text=MF";
 };
+
+const getCategoryTypeForForm = (type) => (type === "income" ? "income" : "expense");
 
 const buildCategoryOptions = (categories, select, includeAll = false) => {
   select.innerHTML = "";
@@ -189,12 +192,15 @@ const renderCategories = () => {
     categoryList.appendChild(chip);
   });
 
-  const formCategories = state.categories.filter((category) => category.type === formType);
+  const formCategoryType = getCategoryTypeForForm(formType);
+  const formCategories = state.categories.filter((category) => category.type === formCategoryType);
   buildCategoryOptions(formCategories, categorySelect);
   const filterCategories =
     filterType === "all"
       ? state.categories
-      : state.categories.filter((category) => category.type === filterType);
+      : state.categories.filter(
+          (category) => category.type === getCategoryTypeForForm(filterType)
+        );
   buildCategoryOptions(filterCategories, filterCategory, true);
 };
 
@@ -311,14 +317,17 @@ const filterByPeriod = (expenses) => {
 const renderTotals = (filteredExpenses) => {
   const income = filteredExpenses.filter((item) => item.type === "income");
   const expense = filteredExpenses.filter((item) => item.type === "expense");
+  const plan = filteredExpenses.filter((item) => item.type === "plan");
   const incomeSum = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const expenseSum = expense.reduce((sum, item) => sum + Number(item.amount), 0);
-  const total = incomeSum - expenseSum;
+  const planSum = plan.reduce((sum, item) => sum + Number(item.amount), 0);
+  const expenseTotalSum = expenseSum + planSum;
+  const total = incomeSum - expenseTotalSum;
 
   balanceAmount.textContent = formatCurrency(total);
-  totalAmount.textContent = formatCurrency(expenseSum);
+  totalAmount.textContent = formatCurrency(expenseTotalSum);
   incomeTotal.textContent = formatCurrency(incomeSum);
-  expenseTotal.textContent = formatCurrency(expenseSum);
+  expenseTotal.textContent = formatCurrency(expenseTotalSum);
 
   const periodExpenses = filterByPeriod(filteredExpenses);
   const summary = periodExpenses.reduce((acc, item) => {
@@ -372,7 +381,8 @@ const renderList = (filteredExpenses) => {
 
       const category = state.categories.find((cat) => cat.id === expense.category_id);
       title.textContent = expense.title;
-      const typeLabel = expense.type === "income" ? "Доход" : "Расход";
+      const typeLabel =
+        expense.type === "income" ? "Доход" : expense.type === "plan" ? "План" : "Расход";
       meta.textContent = `${typeLabel} · ${category ? category.name : ""} · ${new Date(
         expense.spent_on
       ).toLocaleDateString("ru-RU")}`;
@@ -380,6 +390,7 @@ const renderList = (filteredExpenses) => {
       removeButton.addEventListener("click", () => removeExpense(expense.id));
 
       item.dataset.id = expense.id;
+      item.classList.add(`expense-item--${expense.type}`);
       list.appendChild(clone);
     });
 };
@@ -411,6 +422,7 @@ const renderChart = (expenses) => {
   const labels = [];
   const incomeData = [];
   const expenseData = [];
+  const planData = [];
 
   for (let i = days - 1; i >= 0; i -= 1) {
     const date = new Date(now);
@@ -427,12 +439,16 @@ const renderChart = (expenses) => {
     const expenseSum = dayExpenses
       .filter((item) => item.type === "expense")
       .reduce((sum, item) => sum + Number(item.amount), 0);
+    const planSum = dayExpenses
+      .filter((item) => item.type === "plan")
+      .reduce((sum, item) => sum + Number(item.amount), 0);
 
     incomeData.push(incomeSum);
     expenseData.push(expenseSum);
+    planData.push(planSum);
   }
 
-  const maxValue = Math.max(1, ...incomeData, ...expenseData);
+  const maxValue = Math.max(1, ...incomeData, ...expenseData, ...planData);
   const padding = 24;
   const chartWidth = width - padding * 2;
   const chartHeight = height - padding * 2;
@@ -456,6 +472,7 @@ const renderChart = (expenses) => {
 
   drawLine(incomeData, "#16a34a");
   drawLine(expenseData, "#ef4444");
+  drawLine(planData, "#38bdf8");
 };
 
 const syncUI = () => {
@@ -498,7 +515,7 @@ const logoutUser = () => {
   syncUI();
 };
 
-const addCategory = async (name) => {
+const addCategory = async (name, type = categoryType) => {
   const trimmed = name.trim();
   if (!trimmed) {
     return;
@@ -506,7 +523,7 @@ const addCategory = async (name) => {
 
   await apiFetch("/categories", {
     method: "POST",
-    body: JSON.stringify({ name: trimmed, type: categoryType }),
+    body: JSON.stringify({ name: trimmed, type }),
   });
   state.categories = await apiFetch("/categories");
   renderCategories();
@@ -598,7 +615,7 @@ form.addEventListener("submit", async (event) => {
 categoryForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(categoryForm);
-  await addCategory(formData.get("categoryName"));
+  await addCategory(formData.get("categoryName"), categoryType);
   categoryForm.reset();
 });
 
@@ -674,7 +691,7 @@ openCategoryModal.addEventListener("click", () => {
 categoryModalForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(categoryModalForm);
-  await addCategory(formData.get("categoryName"));
+  await addCategory(formData.get("categoryName"), getCategoryTypeForForm(formType));
   categoryModalForm.reset();
   toggleModal(categoryModal, false);
 });
@@ -693,9 +710,9 @@ quickFilterButtons.forEach((button) => {
   });
 });
 
-authTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    setAuthView(tab.dataset.authTab);
+authSwitchButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setAuthView(button.dataset.authSwitch);
   });
 });
 

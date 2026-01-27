@@ -37,12 +37,8 @@
 
       <section id="authSection" class="card auth">
         <div>
-          <h2>Вход или регистрация</h2>
+          <h2 id="authTitle">Вход</h2>
           <p class="hint">Создайте профиль, чтобы сохранять расходы в персональной базе данных.</p>
-        </div>
-        <div class="auth__tabs">
-          <button class="auth__tab auth__tab--active" type="button" data-auth-tab="login">Вход</button>
-          <button class="auth__tab" type="button" data-auth-tab="register">Регистрация</button>
         </div>
         <div class="auth__forms">
           <form id="loginForm" class="form auth__panel" data-auth-view="login">
@@ -55,6 +51,9 @@
               <input type="password" name="password" placeholder="••••••" required />
             </label>
             <button type="submit">Войти</button>
+            <button class="auth__switch" type="button" data-auth-switch="register">
+              Нет профиля? Зарегистрироваться
+            </button>
             <p id="loginMessage" class="message"></p>
           </form>
 
@@ -72,6 +71,9 @@
               <input type="password" name="password" placeholder="Минимум 6 символов" required />
             </label>
             <button type="submit">Создать профиль</button>
+            <button class="auth__switch" type="button" data-auth-switch="login">
+              Уже есть профиль? Войти
+            </button>
             <p id="registerMessage" class="message"></p>
           </form>
         </div>
@@ -95,6 +97,9 @@
           <button class="toggle-button" type="button" data-transaction-type="expense">
             Расходы
           </button>
+          <button class="toggle-button" type="button" data-transaction-type="plan">
+            План
+          </button>
         </div>
         <form id="filterForm" class="filters-form">
           <label>
@@ -116,7 +121,7 @@
         </form>
         <div class="filters-bar__stats">
           <div class="stat">
-            <span>Все расходы</span>
+            <span>Все операции</span>
             <strong id="totalCount">0</strong>
           </div>
           <div class="stat">
@@ -144,6 +149,7 @@
                 Расход
               </button>
               <button class="toggle-button" type="button" data-form-type="income">Доход</button>
+              <button class="toggle-button" type="button" data-form-type="plan">План</button>
             </div>
             <label>
               Название
@@ -174,7 +180,7 @@
             <button id="clearAll" class="ghost">Очистить все</button>
           </div>
           <div id="emptyState" class="empty">
-            <p>Пока нет расходов. Добавьте первую запись.</p>
+            <p>Пока нет операций. Добавьте первую запись.</p>
           </div>
           <ul id="expenseList" class="expense-list"></ul>
         </section>
