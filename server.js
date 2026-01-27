@@ -7,6 +7,7 @@ import { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs/promises";
 
 const app = express();
 const pool = new Pool({
@@ -31,6 +32,12 @@ const DEFAULT_CATEGORIES = [
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 app.use(express.static(__dirname));
+
+const runMigrations = async () => {
+  const schemaPath = path.join(__dirname, "schema.sql");
+  const schemaSql = await fs.readFile(schemaPath, "utf-8");
+  await pool.query(schemaSql);
+};
 
 const signToken = (user) =>
   jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
@@ -247,6 +254,13 @@ app.get("*", (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+runMigrations()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Failed to run migrations", error);
+    process.exit(1);
+  });
