@@ -149,6 +149,36 @@ app.patch("/api/me/avatar", authenticate, async (req, res) => {
   }
 });
 
+app.get("/api/public/:userId", async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const userResult = await pool.query(
+      "SELECT id, name, avatar_url FROM users WHERE id = $1",
+      [userId]
+    );
+    if (!userResult.rowCount) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const categoriesResult = await pool.query(
+      "SELECT id, name, type, is_default FROM categories WHERE user_id = $1 ORDER BY created_at",
+      [userId]
+    );
+    const expensesResult = await pool.query(
+      "SELECT id, title, amount, spent_on, category_id, type FROM expenses WHERE user_id = $1 ORDER BY spent_on DESC",
+      [userId]
+    );
+
+    return res.json({
+      user: userResult.rows[0],
+      categories: categoriesResult.rows,
+      expenses: expensesResult.rows,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.get("/api/categories", authenticate, async (req, res) => {
   try {
     const result = await pool.query(

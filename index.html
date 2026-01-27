@@ -2,13 +2,16 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
     <title>Учет расходов</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app">
-      <header class="app__header">
+      <header id="appHeader" class="app__header">
         <div class="app__balance">
           <p class="app__eyebrow">Мой баланс</p>
           <h1 id="balanceAmount">0 ₽</h1>
@@ -25,7 +28,7 @@
         </div>
       </header>
 
-      <section class="summary-cards">
+      <section id="summaryCards" class="summary-cards">
         <div class="summary-card summary-card--income">
           <span>Доходы</span>
           <strong id="incomeTotal">0 ₽</strong>
@@ -254,6 +257,9 @@
                 </button>
                 <button class="toggle-button" type="button" data-category-type="income">
                   Доходы
+                </button>
+                <button class="toggle-button" type="button" data-category-type="plan">
+                  План
                 </button>
               </div>
               <form id="categoryForm" class="inline-form">

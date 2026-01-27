@@ -23,6 +23,8 @@ const logoutButton = document.getElementById("logoutButton");
 const profileButton = document.getElementById("profileButton");
 const profileShortName = document.getElementById("profileShortName");
 const profileAvatar = document.getElementById("profileAvatar");
+const appHeader = document.getElementById("appHeader");
+const summaryCards = document.getElementById("summaryCards");
 const userName = document.getElementById("userName");
 const userEmail = document.getElementById("userEmail");
 const totalCount = document.getElementById("totalCount");
@@ -67,6 +69,8 @@ let state = {
 let filterType = "all";
 let formType = "expense";
 let categoryType = "expense";
+let viewOnly = false;
+const sharedUserId = new URLSearchParams(window.location.search).get("user");
 
 const apiFetch = async (path, options = {}) => {
   const token = localStorage.getItem(TOKEN_KEY);
@@ -127,9 +131,20 @@ const setAuthView = (view) => {
 
 const toggleAuthView = () => {
   const isAuthenticated = Boolean(state.user);
-  authSection.style.display = isAuthenticated ? "none" : "flex";
-  appContent.style.display = isAuthenticated ? "grid" : "none";
-  filtersBar.style.display = isAuthenticated ? "grid" : "none";
+  const showContent = isAuthenticated || viewOnly;
+  authSection.style.display = showContent ? "none" : "flex";
+  appContent.style.display = showContent ? "grid" : "none";
+  filtersBar.style.display = showContent ? "grid" : "none";
+  if (appHeader) {
+    appHeader.style.display = showContent ? "flex" : "none";
+  }
+  if (summaryCards) {
+    summaryCards.style.display = showContent ? "grid" : "none";
+  }
+  form.style.display = viewOnly ? "none" : "grid";
+  clearAllButton.style.display = viewOnly ? "none" : "inline-flex";
+  openCategoryModal.style.display = viewOnly ? "none" : "inline-flex";
+  categoryForm.style.display = viewOnly ? "none" : "flex";
 };
 
 const renderUserProfile = () => {
@@ -179,14 +194,17 @@ const buildCategoryOptions = (categories, select, includeAll = false) => {
 
 const renderCategories = () => {
   categoryList.innerHTML = "";
-  const visibleCategories = state.categories.filter((category) => category.type === categoryType);
+  const normalizedCategoryType = getCategoryTypeForForm(categoryType);
+  const visibleCategories = state.categories.filter(
+    (category) => category.type === normalizedCategoryType
+  );
 
   visibleCategories.forEach((category) => {
     const chip = document.createElement("span");
     chip.className = "chip";
     chip.textContent = category.name;
 
-    if (!category.is_default) {
+    if (!category.is_default && !viewOnly) {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = "✕";
@@ -392,7 +410,11 @@ const renderList = (filteredExpenses) => {
         expense.spent_on
       ).toLocaleDateString("ru-RU")}`;
       amount.textContent = formatCurrency(Number(expense.amount));
-      removeButton.addEventListener("click", () => removeExpense(expense.id));
+      if (viewOnly) {
+        removeButton.style.display = "none";
+      } else {
+        removeButton.addEventListener("click", () => removeExpense(expense.id));
+      }
 
       item.dataset.id = expense.id;
       item.classList.add(`expense-item--${expense.type}`);
@@ -494,6 +516,15 @@ const fetchUserData = async () => {
   syncUI();
 };
 
+const fetchPublicData = async (userId) => {
+  const response = await apiFetch(`/public/${userId}`);
+  state.user = response.user;
+  state.categories = response.categories;
+  state.expenses = response.expenses;
+  viewOnly = true;
+  syncUI();
+};
+
 const loginUser = async ({ email, password }) => {
   const response = await apiFetch("/login", {
     method: "POST",
@@ -528,7 +559,7 @@ const addCategory = async (name, type = categoryType) => {
 
   await apiFetch("/categories", {
     method: "POST",
-    body: JSON.stringify({ name: trimmed, type }),
+    body: JSON.stringify({ name: trimmed, type: getCategoryTypeForForm(type) }),
   });
   state.categories = await apiFetch("/categories");
   renderCategories();
@@ -594,7 +625,7 @@ const shareProfileLink = async () => {
   const url = `${window.location.origin}${window.location.pathname}?user=${state.user.id}`;
   try {
     await navigator.clipboard.writeText(url);
-    shareMessage.textContent = "Ссылка скопирована в буфер обмена.";
+    shareMessage.textContent = "Ссылка скопирована. Доступ будет только для просмотра.";
   } catch (error) {
     shareMessage.textContent = "Не удалось скопировать ссылку.";
   }
@@ -756,7 +787,12 @@ attachModalHandlers();
 setAuthView("login");
 
 const existingToken = localStorage.getItem(TOKEN_KEY);
-if (existingToken) {
+if (sharedUserId) {
+  fetchPublicData(sharedUserId).catch(() => {
+    viewOnly = false;
+    syncUI();
+  });
+} else if (existingToken) {
   fetchUserData().catch(() => logoutUser());
 } else {
   syncUI();
