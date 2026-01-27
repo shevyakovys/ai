@@ -75,7 +75,7 @@ body {
 }
 
 .summary-card strong {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .summary-card--income {
@@ -244,6 +244,7 @@ textarea {
   border: 1px solid #cbd5f5;
   font-size: 16px;
   background: #f8fafc;
+  accent-color: #2563eb;
 }
 
 select {
@@ -269,6 +270,33 @@ textarea {
   appearance: none;
 }
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(36%) sepia(16%) saturate(437%) hue-rotate(180deg) brightness(94%)
+    contrast(90%);
+}
+
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime-local"]:focus,
+input[type="month"]:focus,
+input[type="week"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="text"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
 .field-with-action {
   display: flex;
   gap: 12px;
@@ -279,6 +307,10 @@ textarea {
   flex: 1 1 auto;
 }
 
+.form-heading {
+  text-align: center;
+}
+
 .field-with-action .ghost {
   border-radius: 12px;
   border: 1px dashed #cbd5f5;
@@ -286,6 +318,9 @@ textarea {
   background: #f8fafc;
   white-space: nowrap;
   height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .field-with-action .ghost:hover {

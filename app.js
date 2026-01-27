@@ -49,6 +49,7 @@ const analyticsChart = document.getElementById("analyticsChart");
 const transactionTypeButtons = document.querySelectorAll("[data-transaction-type]");
 const formTypeButtons = document.querySelectorAll("[data-form-type]");
 const categoryTypeButtons = document.querySelectorAll("[data-category-type]");
+const addOperationSection = form.closest(".card");
 
 const API_BASE = "/api";
 const TOKEN_KEY = "auth_token";
@@ -140,6 +141,9 @@ const toggleAuthView = () => {
   }
   if (summaryCards) {
     summaryCards.style.display = showContent ? "grid" : "none";
+  }
+  if (addOperationSection) {
+    addOperationSection.style.display = viewOnly ? "none" : "flex";
   }
   form.style.display = viewOnly ? "none" : "grid";
   clearAllButton.style.display = viewOnly ? "none" : "inline-flex";
