@@ -54,7 +54,7 @@ body {
 .summary-cards {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .summary-card {
@@ -88,26 +88,30 @@ body {
   background: #fef2f2;
 }
 
+.summary-card--plan {
+  border: 1px solid #bae6fd;
+  background: #e0f2fe;
+}
+
 .profile-pill {
   background: #ffffff;
   color: #111827;
-  border-radius: 999px;
-  padding: 8px 14px;
+  border-radius: 20px;
+  padding: 10px 14px;
   border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 40px;
+  gap: 12px;
+  min-height: 52px;
   margin-left: auto;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
-.profile-pill__label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #64748b;
-  line-height: 1.2;
+.profile-pill__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
 }
 
 .profile-pill__name {
@@ -115,6 +119,28 @@ body {
   font-size: 15px;
 }
 
+.profile-pill__tagline {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.profile-pill__avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.profile-pill__avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+}
 .app__content {
   display: grid;
   grid-template-columns: 1fr;
@@ -314,11 +340,13 @@ button.ghost:hover {
   gap: 16px;
   flex-wrap: wrap;
   align-items: center;
+  width: 100%;
 }
 
 .filters-bar__quick {
   display: grid;
   gap: 8px;
+  width: 100%;
 }
 
 .filters-bar__label {
@@ -585,13 +613,13 @@ button.ghost:hover {
 }
 
 .expense-item--income {
-  background: #ecfdf3;
+  background: #f0fdf4;
   border-color: #86efac;
 }
 
 .expense-item--expense {
-  background: #dcfce7;
-  border-color: #4ade80;
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
 .expense-item--plan {

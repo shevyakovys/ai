@@ -14,10 +14,15 @@
           <h1 id="balanceAmount">0 ₽</h1>
           <p class="app__subtitle">Сводка по доходам и расходам за выбранный период.</p>
         </div>
-        <button id="profileButton" class="profile-pill" type="button">
-          <span class="profile-pill__label">Профиль</span>
-          <span class="profile-pill__name" id="profileShortName">—</span>
-        </button>
+        <div class="profile-pill">
+          <div class="profile-pill__meta">
+            <span class="profile-pill__name" id="profileShortName">—</span>
+            <span class="profile-pill__tagline">Контролируйте финансы легко каждый день.</span>
+          </div>
+          <button id="profileButton" class="profile-pill__avatar" type="button" aria-label="Профиль">
+            <img id="profileAvatar" alt="Аватар профиля" />
+          </button>
+        </div>
       </header>
 
       <section class="summary-cards">
@@ -28,6 +33,10 @@
         <div class="summary-card summary-card--expense">
           <span>Расходы</span>
           <strong id="expenseTotal">0 ₽</strong>
+        </div>
+        <div class="summary-card summary-card--plan">
+          <span>План</span>
+          <strong id="planTotal">0 ₽</strong>
         </div>
         <div class="summary-card">
           <span>Доступный баланс</span>

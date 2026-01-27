@@ -22,6 +22,7 @@ const authTitle = document.getElementById("authTitle");
 const logoutButton = document.getElementById("logoutButton");
 const profileButton = document.getElementById("profileButton");
 const profileShortName = document.getElementById("profileShortName");
+const profileAvatar = document.getElementById("profileAvatar");
 const userName = document.getElementById("userName");
 const userEmail = document.getElementById("userEmail");
 const totalCount = document.getElementById("totalCount");
@@ -41,6 +42,7 @@ const authSwitchButtons = document.querySelectorAll("[data-auth-switch]");
 const balanceAmount = document.getElementById("balanceAmount");
 const incomeTotal = document.getElementById("incomeTotal");
 const expenseTotal = document.getElementById("expenseTotal");
+const planTotal = document.getElementById("planTotal");
 const analyticsChart = document.getElementById("analyticsChart");
 const transactionTypeButtons = document.querySelectorAll("[data-transaction-type]");
 const formTypeButtons = document.querySelectorAll("[data-form-type]");
@@ -136,13 +138,16 @@ const renderUserProfile = () => {
     userEmail.textContent = "—";
     profileShortName.textContent = "—";
     avatarPreview.removeAttribute("src");
+    profileAvatar.removeAttribute("src");
     return;
   }
 
   userName.textContent = state.user.name;
   userEmail.textContent = state.user.email;
   profileShortName.textContent = state.user.name;
-  avatarPreview.src = state.user.avatar_url || "https://placehold.co/120x120?text=MF";
+  const avatarUrl = state.user.avatar_url || "https://placehold.co/120x120?text=MF";
+  avatarPreview.src = avatarUrl;
+  profileAvatar.src = avatarUrl;
 };
 
 const getCategoryTypeForForm = (type) => (type === "income" ? "income" : "expense");
@@ -321,13 +326,13 @@ const renderTotals = (filteredExpenses) => {
   const incomeSum = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const expenseSum = expense.reduce((sum, item) => sum + Number(item.amount), 0);
   const planSum = plan.reduce((sum, item) => sum + Number(item.amount), 0);
-  const expenseTotalSum = expenseSum + planSum;
-  const total = incomeSum - expenseTotalSum;
+  const total = incomeSum - expenseSum;
 
   balanceAmount.textContent = formatCurrency(total);
-  totalAmount.textContent = formatCurrency(expenseTotalSum);
+  totalAmount.textContent = formatCurrency(total);
   incomeTotal.textContent = formatCurrency(incomeSum);
-  expenseTotal.textContent = formatCurrency(expenseTotalSum);
+  expenseTotal.textContent = formatCurrency(expenseSum);
+  planTotal.textContent = formatCurrency(planSum);
 
   const periodExpenses = filterByPeriod(filteredExpenses);
   const summary = periodExpenses.reduce((acc, item) => {
