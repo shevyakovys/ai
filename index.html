@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Ваши финансы" />
+    <link rel="manifest" href="./manifest.json" />
     <title>Expense Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -363,15 +364,6 @@
           </span>
           Бюджет
         </button>
-        <button class="bottom-nav__item" type="button" data-nav="profile" id="profileButton">
-          <span class="bottom-nav__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 20c2.5-4 13.5-4 16 0" />
-            </svg>
-          </span>
-          Профиль
-        </button>
         <button
           class="bottom-nav__fab"
           id="openOperationModal"
@@ -394,38 +386,6 @@
         <button class="expense-item__remove" type="button">Удалить</button>
       </li>
     </template>
-
-    <div id="profileModal" class="modal" role="dialog" aria-modal="true">
-      <div class="modal__backdrop" data-close-modal></div>
-      <div class="modal__content">
-        <div class="modal__header">
-          <h2>Профиль</h2>
-          <button class="icon-button" type="button" data-close-modal aria-label="Закрыть">
-            ✕
-          </button>
-        </div>
-        <div class="profile-modal">
-          <div class="profile-modal__avatar">
-            <img id="avatarPreview" alt="Аватар пользователя" />
-            <label class="avatar-upload">
-              Загрузить фото
-              <input id="avatarInput" type="file" accept="image/*" />
-            </label>
-          </div>
-          <div class="profile-modal__info">
-            <div>
-              <p class="profile__name" id="userName">—</p>
-              <p class="profile__email" id="userEmail">—</p>
-            </div>
-            <div class="profile-modal__actions">
-              <button type="button" class="ghost" id="shareButton">Поделиться</button>
-              <span id="shareMessage" class="hint"></span>
-              <button type="button" class="ghost" id="logoutButton">Выйти</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div id="operationModal" class="modal" role="dialog" aria-modal="true">
       <div class="modal__backdrop" data-close-modal></div>
@@ -493,6 +453,31 @@
           </button>
         </div>
         <div class="modal__body">
+          <div class="card card--compact">
+            <div class="card__header">
+              <h3>Профиль</h3>
+            </div>
+            <div class="profile-modal">
+              <div class="profile-modal__avatar">
+                <img id="avatarPreview" alt="Аватар пользователя" />
+                <label class="avatar-upload">
+                  Загрузить фото
+                  <input id="avatarInput" type="file" accept="image/*" />
+                </label>
+              </div>
+              <div class="profile-modal__info">
+                <div>
+                  <p class="profile__name" id="userName">—</p>
+                  <p class="profile__email" id="userEmail">—</p>
+                </div>
+                <div class="profile-modal__actions">
+                  <button type="button" class="ghost" id="shareButton">Поделиться</button>
+                  <span id="shareMessage" class="hint"></span>
+                  <button type="button" class="ghost" id="logoutButton">Выйти</button>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="card card--compact">
             <div class="card__header">
               <h3>Категории</h3>

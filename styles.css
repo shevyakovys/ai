@@ -25,19 +25,19 @@ body {
 .app {
   width: min(420px, 100%);
   margin: 0 auto;
-  padding: 28px 20px 120px;
+  padding: 20px 16px 110px;
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .app-views {
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .view {
   display: none;
-  gap: 24px;
+  gap: 16px;
 }
 
 .view.is-active {
@@ -90,13 +90,13 @@ body {
 }
 
 .icon-button--lg {
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
 }
 
 .icon-button--lg svg {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
 }
 
 .icon-button:hover {
@@ -111,9 +111,9 @@ body {
 .balance-card {
   background: linear-gradient(145deg, #232a34, #1a2029);
   border-radius: 26px;
-  padding: 20px;
+  padding: 16px;
   display: grid;
-  gap: 20px;
+  gap: 14px;
   box-shadow: 0 24px 50px rgba(2, 6, 23, 0.6);
 }
 
@@ -146,21 +146,21 @@ body {
 .balance-card__stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .balance-stat {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: 10px;
   border-radius: 18px;
   background: rgba(15, 23, 42, 0.5);
 }
 
 .balance-stat__icon {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 14px;
   display: inline-flex;
   align-items: center;
@@ -169,8 +169,8 @@ body {
 }
 
 .balance-stat__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .balance-stat p {
@@ -205,7 +205,7 @@ body {
 .action-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .action-button {
@@ -220,8 +220,8 @@ body {
 }
 
 .action-button__icon {
-  width: 54px;
-  height: 54px;
+  width: 48px;
+  height: 48px;
   border-radius: 18px;
   display: inline-flex;
   align-items: center;
@@ -231,8 +231,8 @@ body {
 }
 
 .action-button__icon svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .action-button--income .action-button__icon {
@@ -281,22 +281,22 @@ body {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .transaction-item {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   background: rgba(15, 23, 42, 0.6);
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 18px;
 }
 
 .transaction-item__icon {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 14px;
   display: inline-flex;
   align-items: center;
@@ -306,8 +306,8 @@ body {
 }
 
 .transaction-item__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .transaction-item--income .transaction-item__icon {
@@ -369,9 +369,9 @@ body {
 .card {
   background: rgba(15, 23, 42, 0.65);
   border-radius: 20px;
-  padding: 18px;
+  padding: 14px;
   display: grid;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
 }
 
@@ -514,9 +514,9 @@ button.ghost:hover {
 .filters-panel {
   background: rgba(15, 23, 42, 0.65);
   border-radius: 20px;
-  padding: 18px;
+  padding: 14px;
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .filters-panel__header {
@@ -527,9 +527,9 @@ button.ghost:hover {
 .filters-panel__toggle {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
   background: rgba(148, 163, 184, 0.15);
-  padding: 6px;
+  padding: 4px;
   border-radius: 14px;
 }
 
@@ -577,6 +577,8 @@ button.ghost:hover {
   right: 0;
   bottom: 0;
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   justify-content: space-around;
   gap: 6px;
   align-items: center;
@@ -596,6 +598,8 @@ button.ghost:hover {
   gap: 6px;
   font-size: 11px;
   cursor: pointer;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .bottom-nav__item.is-active {
@@ -637,6 +641,11 @@ button.ghost:hover {
   justify-content: center;
   padding: 24px;
   z-index: 50;
+}
+
+.modal-open {
+  overflow: hidden;
+  height: 100%;
 }
 
 .modal.is-open {

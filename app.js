@@ -22,7 +22,6 @@ const loginMessage = document.getElementById("loginMessage");
 const registerMessage = document.getElementById("registerMessage");
 const authTitle = document.getElementById("authTitle");
 const logoutButton = document.getElementById("logoutButton");
-const profileButton = document.getElementById("profileButton");
 const profileShortName = document.getElementById("profileShortName");
 const profileAvatar = document.getElementById("profileAvatar");
 const appHeader = document.getElementById("appHeader");
@@ -38,7 +37,6 @@ const userName = document.getElementById("userName");
 const userEmail = document.getElementById("userEmail");
 const totalCount = document.getElementById("totalCount");
 const filteredCount = document.getElementById("filteredCount");
-const profileModal = document.getElementById("profileModal");
 const operationModal = document.getElementById("operationModal");
 const openOperationModal = document.getElementById("openOperationModal");
 const avatarInput = document.getElementById("avatarInput");
@@ -122,17 +120,22 @@ const apiFetch = async (path, options = {}) => {
   return response.json();
 };
 
+const updateModalState = () => {
+  const isAnyOpen = Boolean(document.querySelector(".modal.is-open"));
+  document.body.classList.toggle("modal-open", isAnyOpen);
+};
+
 const toggleModal = (modal, isOpen) => {
   if (!modal) {
     return;
   }
   modal.classList.toggle("is-open", isOpen);
+  updateModalState();
 };
 
 const attachModalHandlers = () => {
   document.querySelectorAll("[data-close-modal]").forEach((button) => {
     button.addEventListener("click", () => {
-      toggleModal(profileModal, false);
       toggleModal(operationModal, false);
       if (filtersBar) {
         filtersBar.classList.remove("is-open");
@@ -143,6 +146,7 @@ const attachModalHandlers = () => {
       if (settingsModal) {
         toggleModal(settingsModal, false);
       }
+      updateModalState();
     });
   });
 };
@@ -626,7 +630,7 @@ const registerUser = async ({ name, email, password }) => {
   });
   localStorage.setItem(TOKEN_KEY, response.token);
   await fetchUserData();
-  toggleModal(profileModal, true);
+  toggleModal(settingsModal, true);
 };
 
 const logoutUser = () => {
@@ -806,10 +810,6 @@ logoutButton.addEventListener("click", () => {
   logoutUser();
 });
 
-profileButton.addEventListener("click", () => {
-  toggleModal(profileModal, true);
-});
-
 if (openOperationModal) {
   openOperationModal.addEventListener("click", () => {
     toggleModal(operationModal, true);
@@ -861,9 +861,6 @@ actionButtons.forEach((button) => {
 actionOpenButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const target = button.dataset.actionOpen;
-    if (target === "profile") {
-      toggleModal(profileModal, true);
-    }
     if (target === "notifications") {
       toggleModal(notificationsModal, true);
     }
@@ -922,10 +919,6 @@ navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     navButtons.forEach((item) => item.classList.remove("is-active"));
     button.classList.add("is-active");
-    if (button.dataset.nav === "profile") {
-      toggleModal(profileModal, true);
-      return;
-    }
     setView(button.dataset.nav);
   });
 });
@@ -935,6 +928,10 @@ form.elements.date.value = today;
 
 attachModalHandlers();
 setAuthView("login");
+
+window.addEventListener("load", () => {
+  window.scrollTo(0, 1);
+});
 
 const existingToken = localStorage.getItem(TOKEN_KEY);
 if (sharedUserId) {
