@@ -123,6 +123,7 @@ const apiFetch = async (path, options = {}) => {
 const updateModalState = () => {
   const isAnyOpen = Boolean(document.querySelector(".modal.is-open"));
   document.body.classList.toggle("modal-open", isAnyOpen);
+  document.documentElement.classList.toggle("modal-open", isAnyOpen);
 };
 
 const toggleModal = (modal, isOpen) => {

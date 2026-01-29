@@ -581,7 +581,7 @@ button.ghost:hover {
   right: 0;
   bottom: 0;
   display: flex;
-  flex-direction: row;
+  flex-direction: row !important;
   flex-wrap: nowrap;
   justify-content: space-around;
   gap: 6px;
@@ -604,6 +604,7 @@ button.ghost:hover {
   cursor: pointer;
   flex: 1 1 0;
   min-width: 0;
+  white-space: nowrap;
 }
 
 .bottom-nav__item.is-active {
@@ -644,14 +645,20 @@ button.ghost:hover {
   align-items: center;
 }
 
+.transaction-item__left {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
 .transaction-item__content {
   display: grid;
   gap: 4px;
 }
 
 .expense-item__remove {
-  margin-top: 8px;
-  justify-self: flex-start;
+  margin: 0;
+  justify-self: center;
 }
 
 .modal {
@@ -667,6 +674,16 @@ button.ghost:hover {
 .modal-open {
   overflow: hidden;
   height: 100%;
+}
+
+html.modal-open {
+  overflow: hidden;
+  height: 100%;
+}
+
+body.modal-open {
+  position: fixed;
+  width: 100%;
 }
 
 .modal.is-open {

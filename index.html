@@ -407,14 +407,16 @@
     <template id="expenseItemTemplate">
       <li class="transaction-item">
         <div class="transaction-item__header">
-          <span class="transaction-item__icon" data-icon></span>
+          <div class="transaction-item__left">
+            <span class="transaction-item__icon" data-icon></span>
+            <button class="expense-item__remove" type="button">Удалить</button>
+          </div>
           <div class="transaction-item__content">
             <h3>Название</h3>
             <p class="expense-item__meta">Категория · Дата</p>
           </div>
           <strong class="transaction-item__amount">0 ₽</strong>
         </div>
-        <button class="expense-item__remove" type="button">Удалить</button>
       </li>
     </template>
 
