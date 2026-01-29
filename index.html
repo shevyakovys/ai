@@ -99,7 +99,7 @@
       <section id="summaryCards" class="balance-card">
         <div class="balance-card__header">
           <div>
-            <p class="balance-card__label">Общий баланс</p>
+            <p class="balance-card__label">Баланс</p>
             <h2 id="balanceAmount" class="balance-card__amount">0 ₽</h2>
             <span id="totalAmount" class="sr-only">0 ₽</span>
           </div>
@@ -131,10 +131,10 @@
               <strong id="expenseTotal">0 ₽</strong>
             </div>
           </div>
-          <div class="balance-stat balance-stat--plan is-hidden">
+          <div class="balance-stat balance-stat--plan">
             <span class="balance-stat__icon">◎</span>
             <div>
-              <p>Планы</p>
+              <p>Плановые расходы</p>
               <strong id="planTotal">0 ₽</strong>
             </div>
           </div>
@@ -144,7 +144,12 @@
       <section id="quickActions" class="action-section">
         <div class="action-grid">
           <button class="action-button action-button--income" type="button" data-action-type="income">
-            <span class="action-button__icon">↗</span>
+            <span class="action-button__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 17L17 7" />
+                <path d="M7 7h10v10" />
+              </svg>
+            </span>
             Доход
           </button>
           <button
@@ -152,7 +157,12 @@
             type="button"
             data-action-type="expense"
           >
-            <span class="action-button__icon">↘</span>
+            <span class="action-button__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 7l10 10" />
+                <path d="M7 17h10V7" />
+              </svg>
+            </span>
             Расход
           </button>
           <button
@@ -160,11 +170,21 @@
             type="button"
             data-action-type="transfer"
           >
-            <span class="action-button__icon">⇄</span>
+            <span class="action-button__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 7h11l-3.5-3.5" />
+                <path d="M17 17H6l3.5 3.5" />
+              </svg>
+            </span>
             Перевод
           </button>
           <button class="action-button action-button--goal" type="button" data-action-type="goal">
-            <span class="action-button__icon">◎</span>
+            <span class="action-button__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="7" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </span>
             Цель
           </button>
         </div>
@@ -172,8 +192,8 @@
 
       <section id="appContent" class="transaction-section">
         <div class="section-header">
-          <h2>Последние транзакции</h2>
-          <button id="recentAll" class="link-button" type="button" data-action-open="filters">
+          <h2 id="transactionsTitle">Последние транзакции</h2>
+          <button id="recentAll" class="link-button" type="button">
             Все
             <span aria-hidden="true">›</span>
           </button>
@@ -262,11 +282,22 @@
 
       <nav id="bottomNav" class="bottom-nav" aria-label="Основная навигация">
         <button class="bottom-nav__item is-active" type="button" data-nav="home">
-          <span class="bottom-nav__icon">⌂</span>
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 10l9-7 9 7" />
+              <path d="M5 10v10h14V10" />
+            </svg>
+          </span>
           Главная
         </button>
         <button class="bottom-nav__item" type="button" data-nav="transactions">
-          <span class="bottom-nav__icon">≡</span>
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16" />
+              <path d="M4 12h16" />
+              <path d="M4 18h16" />
+            </svg>
+          </span>
           Транзакции
         </button>
         <button
@@ -278,11 +309,23 @@
           +
         </button>
         <button class="bottom-nav__item" type="button" data-nav="budget">
-          <span class="bottom-nav__icon">▤</span>
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="7" height="7" rx="1" />
+              <rect x="13" y="4" width="7" height="7" rx="1" />
+              <rect x="4" y="13" width="7" height="7" rx="1" />
+              <rect x="13" y="13" width="7" height="7" rx="1" />
+            </svg>
+          </span>
           Бюджет
         </button>
         <button class="bottom-nav__item" type="button" data-nav="profile" id="profileButton">
-          <span class="bottom-nav__icon">☺</span>
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c2.5-4 13.5-4 16 0" />
+            </svg>
+          </span>
           Профиль
         </button>
       </nav>
@@ -291,7 +334,7 @@
 
     <template id="expenseItemTemplate">
       <li class="transaction-item">
-        <div class="transaction-item__icon">🚗</div>
+        <span class="transaction-item__icon" data-icon></span>
         <div>
           <h3>Название</h3>
           <p class="expense-item__meta">Категория · Дата</p>

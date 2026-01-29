@@ -31,6 +31,7 @@ const toggleBalanceButton = document.getElementById("toggleBalance");
 const notificationsModal = document.getElementById("notificationsModal");
 const settingsModal = document.getElementById("settingsModal");
 const recentAllButton = document.getElementById("recentAll");
+const transactionsTitle = document.getElementById("transactionsTitle");
 const userName = document.getElementById("userName");
 const userEmail = document.getElementById("userEmail");
 const totalCount = document.getElementById("totalCount");
@@ -82,6 +83,7 @@ let formType = "expense";
 let categoryType = "expense";
 let viewOnly = false;
 let balanceHidden = false;
+let currentView = "home";
 let lastTotals = { total: 0, income: 0, expense: 0, plan: 0 };
 const sharedUserId = new URLSearchParams(window.location.search).get("user");
 
@@ -422,10 +424,13 @@ const renderTotals = (filteredExpenses) => {
 
 const updateBalanceDisplay = () => {
   const { total, income, expense, plan } = lastTotals;
-  const totalText = balanceHidden ? "••••" : formatCurrency(total);
+  const totalText = formatCurrency(total);
   balanceAmount.textContent = totalText;
   totalAmount.textContent = totalText;
   balanceAmount.classList.toggle("is-hidden", balanceHidden);
+  if (summaryCards) {
+    summaryCards.classList.toggle("is-blurred", balanceHidden);
+  }
   incomeTotal.textContent = formatCurrency(income);
   expenseTotal.textContent = formatCurrency(expense);
   planTotal.textContent = formatCurrency(plan);
@@ -433,14 +438,15 @@ const updateBalanceDisplay = () => {
 
 const renderList = (filteredExpenses) => {
   list.innerHTML = "";
+  const itemsToRender = currentView === "home" ? filteredExpenses.slice(0, 5) : filteredExpenses;
 
-  if (!filteredExpenses.length) {
+  if (!itemsToRender.length) {
     emptyState.style.display = "block";
   } else {
     emptyState.style.display = "none";
   }
 
-  filteredExpenses
+  itemsToRender
     .slice()
     .sort((a, b) => new Date(b.spent_on) - new Date(a.spent_on))
     .forEach((expense) => {
@@ -461,7 +467,13 @@ const renderList = (filteredExpenses) => {
       ).toLocaleDateString("ru-RU")}`;
       amount.textContent = formatCurrency(Number(expense.amount));
       if (icon) {
-        icon.textContent = expense.type === "income" ? "💰" : expense.type === "plan" ? "🎯" : "🚗";
+        const iconMarkup =
+          expense.type === "income"
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>'
+            : expense.type === "plan"
+              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>'
+              : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7l10 10"/><path d="M7 17h10V7"/></svg>';
+        icon.innerHTML = iconMarkup;
       }
       if (viewOnly) {
         removeButton.style.display = "none";
@@ -483,6 +495,11 @@ const render = () => {
   const filteredExpenses = applyFilters(state.expenses);
   totalCount.textContent = state.expenses.length;
   filteredCount.textContent = filteredExpenses.length;
+  if (transactionsTitle && recentAllButton) {
+    const isHome = currentView === "home";
+    transactionsTitle.textContent = isHome ? "Последние транзакции" : "Все транзакции";
+    recentAllButton.style.display = isHome ? "inline-flex" : "none";
+  }
   renderList(filteredExpenses);
   renderTotals(filteredExpenses);
 };
@@ -885,7 +902,10 @@ if (toggleBalanceButton) {
 
 if (recentAllButton) {
   recentAllButton.addEventListener("click", () => {
-    toggleModal(filtersBar, true);
+    const targetButton = Array.from(navButtons).find((button) => button.dataset.nav === "transactions");
+    if (targetButton) {
+      targetButton.click();
+    }
   });
 }
 
@@ -893,9 +913,11 @@ navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     navButtons.forEach((item) => item.classList.remove("is-active"));
     button.classList.add("is-active");
+    currentView = button.dataset.nav;
     if (button.dataset.nav === "profile") {
       toggleModal(profileModal, true);
     }
+    render();
   });
 });
 
