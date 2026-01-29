@@ -31,8 +31,10 @@ const totalCount = document.getElementById("totalCount");
 const filteredCount = document.getElementById("filteredCount");
 const profileModal = document.getElementById("profileModal");
 const categoryModal = document.getElementById("categoryModal");
+const operationModal = document.getElementById("operationModal");
 const categoryModalForm = document.getElementById("categoryModalForm");
 const openCategoryModal = document.getElementById("openCategoryModal");
+const openOperationModal = document.getElementById("openOperationModal");
 const avatarInput = document.getElementById("avatarInput");
 const avatarPreview = document.getElementById("avatarPreview");
 const shareButton = document.getElementById("shareButton");
@@ -50,6 +52,8 @@ const transactionTypeButtons = document.querySelectorAll("[data-transaction-type
 const formTypeButtons = document.querySelectorAll("[data-form-type]");
 const categoryTypeButtons = document.querySelectorAll("[data-category-type]");
 const addOperationSection = form.closest(".card");
+const actionButtons = document.querySelectorAll("[data-action-type]");
+const actionOpenButtons = document.querySelectorAll("[data-action-open]");
 
 const API_BASE = "/api";
 const TOKEN_KEY = "auth_token";
@@ -117,6 +121,7 @@ const attachModalHandlers = () => {
     button.addEventListener("click", () => {
       toggleModal(profileModal, false);
       toggleModal(categoryModal, false);
+      toggleModal(operationModal, false);
     });
   });
 };
@@ -149,6 +154,9 @@ const toggleAuthView = () => {
   clearAllButton.style.display = viewOnly ? "none" : "inline-flex";
   openCategoryModal.style.display = viewOnly ? "none" : "inline-flex";
   categoryForm.style.display = viewOnly ? "none" : "flex";
+  if (openOperationModal) {
+    openOperationModal.style.display = viewOnly ? "none" : "inline-flex";
+  }
 };
 
 const renderUserProfile = () => {
@@ -674,6 +682,9 @@ summaryPeriod.addEventListener("change", () => {
 });
 
 clearAllButton.addEventListener("click", async () => {
+  if (clearAllButton.dataset.action === "view-all") {
+    return;
+  }
   if (!state.expenses.length) {
     return;
   }
@@ -724,6 +735,12 @@ profileButton.addEventListener("click", () => {
   toggleModal(profileModal, true);
 });
 
+if (openOperationModal) {
+  openOperationModal.addEventListener("click", () => {
+    toggleModal(operationModal, true);
+  });
+}
+
 openCategoryModal.addEventListener("click", () => {
   toggleModal(categoryModal, true);
 });
@@ -753,6 +770,26 @@ quickFilterButtons.forEach((button) => {
 authSwitchButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setAuthView(button.dataset.authSwitch);
+  });
+});
+
+actionButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    formType = button.dataset.actionType;
+    formTypeButtons.forEach((item) => item.classList.remove("is-active"));
+    formTypeButtons.forEach((item) => {
+      item.classList.toggle("is-active", item.dataset.formType === formType);
+    });
+    renderCategories();
+    toggleModal(operationModal, true);
+  });
+});
+
+actionOpenButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (button.dataset.actionOpen === "profile") {
+      toggleModal(profileModal, true);
+    }
   });
 });
 

@@ -11,40 +11,121 @@
   </head>
   <body>
     <div class="app">
-      <header id="appHeader" class="app__header">
-        <div class="app__balance">
-          <p class="app__eyebrow">Мой баланс</p>
-          <h1 id="balanceAmount">0 ₽</h1>
-          <p class="app__subtitle">Сводка по доходам и расходам за выбранный период.</p>
+      <header id="appHeader" class="app__header app__header--split">
+        <div>
+          <p class="app__eyebrow">Добро пожаловать</p>
+          <h1>Ваши финансы</h1>
         </div>
-        <div class="profile-pill">
-          <div class="profile-pill__meta">
-            <span class="profile-pill__name" id="profileShortName">—</span>
-            <span class="profile-pill__tagline">Контролируйте финансы легко каждый день.</span>
-          </div>
+        <div class="header-actions">
+          <button class="icon-button" type="button" aria-label="Уведомления">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 3a6 6 0 0 0-6 6v2.6l-1.4 2.8c-.5 1 0 2.2 1.2 2.2h13.4c1.1 0 1.7-1.2 1.2-2.2L18 11.6V9a6 6 0 0 0-6-6z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M9 19a3 3 0 0 0 6 0"
+                stroke="currentColor"
+                stroke-width="1.5"
+                fill="none"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+          <button class="icon-button" type="button" aria-label="Настройки">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                fill="none"
+              />
+              <path
+                d="M19.5 12a7.5 7.5 0 0 0-.1-1l2-1.5-2-3.5-2.3.8a7.6 7.6 0 0 0-1.7-1l-.3-2.5h-4l-.3 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-.8-2 3.5 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.5 2.3-.8a7.6 7.6 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.6 7.6 0 0 0 1.7-1l2.3.8 2-3.5-2-1.5c.1-.3.1-.7.1-1z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
           <button id="profileButton" class="profile-pill__avatar" type="button" aria-label="Профиль">
             <img id="profileAvatar" alt="Аватар профиля" />
           </button>
         </div>
       </header>
 
-      <section id="summaryCards" class="summary-cards">
-        <div class="summary-card summary-card--income">
-          <span>Доходы</span>
-          <strong id="incomeTotal">0 ₽</strong>
+      <section id="summaryCards" class="balance-card">
+        <div class="balance-card__top">
+          <div>
+            <p class="balance-card__label">Общий баланс</p>
+            <h2 id="balanceAmount" class="balance-card__value">0 ₽</h2>
+          </div>
+          <button class="icon-button" type="button" aria-label="Скрыть баланс">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"
+                stroke="currentColor"
+                stroke-width="1.5"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none" />
+            </svg>
+          </button>
         </div>
-        <div class="summary-card summary-card--expense">
-          <span>Расходы</span>
-          <strong id="expenseTotal">0 ₽</strong>
+        <div class="balance-card__mini">
+          <div class="mini-card mini-card--income">
+            <div class="mini-card__icon">⬆️</div>
+            <div>
+              <span>Доходы</span>
+              <strong id="incomeTotal">0 ₽</strong>
+            </div>
+          </div>
+          <div class="mini-card mini-card--expense">
+            <div class="mini-card__icon">⬇️</div>
+            <div>
+              <span>Расходы</span>
+              <strong id="expenseTotal">0 ₽</strong>
+            </div>
+          </div>
+          <div class="mini-card mini-card--plan">
+            <div class="mini-card__icon">🎯</div>
+            <div>
+              <span>План</span>
+              <strong id="planTotal">0 ₽</strong>
+            </div>
+          </div>
         </div>
-        <div class="summary-card summary-card--plan">
-          <span>План</span>
-          <strong id="planTotal">0 ₽</strong>
-        </div>
-        <div class="summary-card">
+        <div class="balance-card__footer">
           <span>Баланс</span>
           <strong id="totalAmount">0 ₽</strong>
         </div>
+      </section>
+
+      <section class="action-grid">
+        <button class="action-button" type="button" data-action-type="income">
+          <span class="action-icon action-icon--income">⬆️</span>
+          Доход
+        </button>
+        <button class="action-button" type="button" data-action-type="expense">
+          <span class="action-icon action-icon--expense">⬇️</span>
+          Расход
+        </button>
+        <button class="action-button" type="button" data-action-type="plan">
+          <span class="action-icon action-icon--plan">🎯</span>
+          План
+        </button>
+        <button class="action-button" type="button" data-action-open="profile">
+          <span class="action-icon action-icon--neutral">⚙️</span>
+          Категории
+        </button>
       </section>
 
       <section id="authSection" class="card auth">
@@ -153,46 +234,14 @@
       </section>
 
       <main id="appContent" class="app__content">
-        <section class="card">
-          <h2 class="form-heading">Добавить операцию</h2>
-          <form id="expenseForm" class="form">
-            <div class="form-toggle">
-              <button class="toggle-button is-active" type="button" data-form-type="expense">
-                Расход
-              </button>
-              <button class="toggle-button" type="button" data-form-type="income">Доход</button>
-              <button class="toggle-button" type="button" data-form-type="plan">План</button>
-            </div>
-            <label>
-              Название
-              <input type="text" name="title" placeholder="Например, кофе" required />
-            </label>
-            <label>
-              Категория
-              <div class="field-with-action">
-                <select name="category" id="categorySelect" required></select>
-                <button id="openCategoryModal" class="ghost" type="button">+ Добавить</button>
-              </div>
-            </label>
-            <label>
-              Сумма (₽)
-              <input type="number" name="amount" min="0.01" step="0.01" placeholder="0.00" required />
-            </label>
-            <label>
-              Дата
-              <input type="date" name="date" required />
-            </label>
-            <button type="submit">Добавить</button>
-          </form>
-        </section>
 
         <section class="card">
           <div class="card__header">
-            <h2>Последние операции</h2>
-            <button id="clearAll" class="ghost">Очистить все</button>
+            <h2>Последние транзакции</h2>
+            <button id="clearAll" class="ghost" data-action="view-all">Все →</button>
           </div>
           <div id="emptyState" class="empty">
-            <p>Пока нет операций. Добавьте первую запись.</p>
+            <p>Нет транзакций. Нажмите +, чтобы добавить.</p>
           </div>
           <ul id="expenseList" class="expense-list"></ul>
         </section>
@@ -281,6 +330,45 @@
       </div>
     </div>
 
+    <div id="operationModal" class="modal">
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2>Добавить операцию</h2>
+          <button class="ghost" type="button" data-close-modal>Закрыть</button>
+        </div>
+        <form id="expenseForm" class="form">
+          <div class="form-toggle">
+            <button class="toggle-button is-active" type="button" data-form-type="expense">
+              Расход
+            </button>
+            <button class="toggle-button" type="button" data-form-type="income">Доход</button>
+            <button class="toggle-button" type="button" data-form-type="plan">План</button>
+          </div>
+          <label>
+            Название
+            <input type="text" name="title" placeholder="Например, кофе" required />
+          </label>
+          <label>
+            Категория
+            <div class="field-with-action">
+              <select name="category" id="categorySelect" required></select>
+              <button id="openCategoryModal" class="ghost" type="button">+ Добавить</button>
+            </div>
+          </label>
+          <label>
+            Сумма (₽)
+            <input type="number" name="amount" min="0.01" step="0.01" placeholder="0.00" required />
+          </label>
+          <label>
+            Дата
+            <input type="date" name="date" required />
+          </label>
+          <button type="submit">Добавить</button>
+        </form>
+      </div>
+    </div>
+
     <div id="categoryModal" class="modal">
       <div class="modal__backdrop" data-close-modal></div>
       <div class="modal__content">
@@ -297,6 +385,10 @@
         </form>
       </div>
     </div>
+
+    <button id="openOperationModal" class="fab" type="button" aria-label="Добавить операцию">
+      +
+    </button>
 
     <script src="app.js"></script>
   </body>
