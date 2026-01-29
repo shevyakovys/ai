@@ -25,6 +25,12 @@ const profileShortName = document.getElementById("profileShortName");
 const profileAvatar = document.getElementById("profileAvatar");
 const appHeader = document.getElementById("appHeader");
 const summaryCards = document.getElementById("summaryCards");
+const quickActions = document.getElementById("quickActions");
+const bottomNav = document.getElementById("bottomNav");
+const toggleBalanceButton = document.getElementById("toggleBalance");
+const notificationsModal = document.getElementById("notificationsModal");
+const settingsModal = document.getElementById("settingsModal");
+const recentAllButton = document.getElementById("recentAll");
 const userName = document.getElementById("userName");
 const userEmail = document.getElementById("userEmail");
 const totalCount = document.getElementById("totalCount");
@@ -51,9 +57,9 @@ const analyticsChart = document.getElementById("analyticsChart");
 const transactionTypeButtons = document.querySelectorAll("[data-transaction-type]");
 const formTypeButtons = document.querySelectorAll("[data-form-type]");
 const categoryTypeButtons = document.querySelectorAll("[data-category-type]");
-const addOperationSection = form.closest(".card");
 const actionButtons = document.querySelectorAll("[data-action-type]");
 const actionOpenButtons = document.querySelectorAll("[data-action-open]");
+const navButtons = document.querySelectorAll("[data-nav]");
 
 const API_BASE = "/api";
 const TOKEN_KEY = "auth_token";
@@ -75,6 +81,8 @@ let filterType = "all";
 let formType = "expense";
 let categoryType = "expense";
 let viewOnly = false;
+let balanceHidden = false;
+let lastTotals = { total: 0, income: 0, expense: 0, plan: 0 };
 const sharedUserId = new URLSearchParams(window.location.search).get("user");
 
 const apiFetch = async (path, options = {}) => {
@@ -122,6 +130,15 @@ const attachModalHandlers = () => {
       toggleModal(profileModal, false);
       toggleModal(categoryModal, false);
       toggleModal(operationModal, false);
+      if (filtersBar) {
+        toggleModal(filtersBar, false);
+      }
+      if (notificationsModal) {
+        toggleModal(notificationsModal, false);
+      }
+      if (settingsModal) {
+        toggleModal(settingsModal, false);
+      }
     });
   });
 };
@@ -140,22 +157,26 @@ const toggleAuthView = () => {
   const showContent = isAuthenticated || viewOnly;
   authSection.style.display = showContent ? "none" : "flex";
   appContent.style.display = showContent ? "grid" : "none";
-  filtersBar.style.display = showContent ? "grid" : "none";
   if (appHeader) {
     appHeader.style.display = showContent ? "flex" : "none";
   }
   if (summaryCards) {
     summaryCards.style.display = showContent ? "grid" : "none";
   }
-  if (addOperationSection) {
-    addOperationSection.style.display = viewOnly ? "none" : "flex";
+  if (quickActions) {
+    quickActions.style.display = viewOnly ? "none" : "grid";
   }
-  form.style.display = viewOnly ? "none" : "grid";
+  if (form) {
+    form.style.display = viewOnly ? "none" : "grid";
+  }
   clearAllButton.style.display = viewOnly ? "none" : "inline-flex";
   openCategoryModal.style.display = viewOnly ? "none" : "inline-flex";
   categoryForm.style.display = viewOnly ? "none" : "flex";
-  if (openOperationModal) {
-    openOperationModal.style.display = viewOnly ? "none" : "inline-flex";
+  if (bottomNav) {
+    bottomNav.style.display = showContent ? "grid" : "none";
+  }
+  if (!showContent && filtersBar) {
+    toggleModal(filtersBar, false);
   }
 };
 
@@ -177,7 +198,15 @@ const renderUserProfile = () => {
   profileAvatar.src = avatarUrl;
 };
 
-const getCategoryTypeForForm = (type) => (type === "income" ? "income" : "expense");
+const getCategoryTypeForForm = (type) => {
+  if (type === "income") {
+    return "income";
+  }
+  if (type === "plan" || type === "goal") {
+    return "plan";
+  }
+  return "expense";
+};
 
 const buildCategoryOptions = (categories, select, includeAll = false) => {
   select.innerHTML = "";
@@ -358,11 +387,8 @@ const renderTotals = (filteredExpenses) => {
   const planSum = plan.reduce((sum, item) => sum + Number(item.amount), 0);
   const total = incomeSum - expenseSum;
 
-  balanceAmount.textContent = formatCurrency(total);
-  totalAmount.textContent = formatCurrency(total);
-  incomeTotal.textContent = formatCurrency(incomeSum);
-  expenseTotal.textContent = formatCurrency(expenseSum);
-  planTotal.textContent = formatCurrency(planSum);
+  lastTotals = { total, income: incomeSum, expense: expenseSum, plan: planSum };
+  updateBalanceDisplay();
 
   const periodExpenses = filterByPeriod(filteredExpenses);
   const summary = periodExpenses.reduce((acc, item) => {
@@ -394,6 +420,17 @@ const renderTotals = (filteredExpenses) => {
   renderChart(filteredExpenses);
 };
 
+const updateBalanceDisplay = () => {
+  const { total, income, expense, plan } = lastTotals;
+  const totalText = balanceHidden ? "••••" : formatCurrency(total);
+  balanceAmount.textContent = totalText;
+  totalAmount.textContent = totalText;
+  balanceAmount.classList.toggle("is-hidden", balanceHidden);
+  incomeTotal.textContent = formatCurrency(income);
+  expenseTotal.textContent = formatCurrency(expense);
+  planTotal.textContent = formatCurrency(plan);
+};
+
 const renderList = (filteredExpenses) => {
   list.innerHTML = "";
 
@@ -408,11 +445,12 @@ const renderList = (filteredExpenses) => {
     .sort((a, b) => new Date(b.spent_on) - new Date(a.spent_on))
     .forEach((expense) => {
       const clone = template.content.cloneNode(true);
-      const item = clone.querySelector(".expense-item");
+      const item = clone.querySelector(".transaction-item");
       const title = clone.querySelector("h3");
       const meta = clone.querySelector(".expense-item__meta");
-      const amount = clone.querySelector(".expense-item__amount");
+      const amount = clone.querySelector(".transaction-item__amount");
       const removeButton = clone.querySelector(".expense-item__remove");
+      const icon = clone.querySelector(".transaction-item__icon");
 
       const category = state.categories.find((cat) => cat.id === expense.category_id);
       title.textContent = expense.title;
@@ -422,6 +460,9 @@ const renderList = (filteredExpenses) => {
         expense.spent_on
       ).toLocaleDateString("ru-RU")}`;
       amount.textContent = formatCurrency(Number(expense.amount));
+      if (icon) {
+        icon.textContent = expense.type === "income" ? "💰" : expense.type === "plan" ? "🎯" : "🚗";
+      }
       if (viewOnly) {
         removeButton.style.display = "none";
       } else {
@@ -429,7 +470,7 @@ const renderList = (filteredExpenses) => {
       }
 
       item.dataset.id = expense.id;
-      item.classList.add(`expense-item--${expense.type}`);
+      item.classList.add(`transaction-item--${expense.type}`);
       list.appendChild(clone);
     });
 };
@@ -775,7 +816,10 @@ authSwitchButtons.forEach((button) => {
 
 actionButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    formType = button.dataset.actionType;
+    const actionType = button.dataset.actionType;
+    const mappedType =
+      actionType === "transfer" ? "expense" : actionType === "goal" ? "plan" : actionType;
+    formType = mappedType;
     formTypeButtons.forEach((item) => item.classList.remove("is-active"));
     formTypeButtons.forEach((item) => {
       item.classList.toggle("is-active", item.dataset.formType === formType);
@@ -787,8 +831,18 @@ actionButtons.forEach((button) => {
 
 actionOpenButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    if (button.dataset.actionOpen === "profile") {
+    const target = button.dataset.actionOpen;
+    if (target === "profile") {
       toggleModal(profileModal, true);
+    }
+    if (target === "filters") {
+      toggleModal(filtersBar, true);
+    }
+    if (target === "notifications") {
+      toggleModal(notificationsModal, true);
+    }
+    if (target === "settings") {
+      toggleModal(settingsModal, true);
     }
   });
 });
@@ -818,6 +872,30 @@ categoryTypeButtons.forEach((button) => {
     button.classList.add("is-active");
     categoryType = button.dataset.categoryType;
     renderCategories();
+  });
+});
+
+if (toggleBalanceButton) {
+  toggleBalanceButton.addEventListener("click", () => {
+    balanceHidden = !balanceHidden;
+    toggleBalanceButton.setAttribute("aria-pressed", String(balanceHidden));
+    updateBalanceDisplay();
+  });
+}
+
+if (recentAllButton) {
+  recentAllButton.addEventListener("click", () => {
+    toggleModal(filtersBar, true);
+  });
+}
+
+navButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    navButtons.forEach((item) => item.classList.remove("is-active"));
+    button.classList.add("is-active");
+    if (button.dataset.nav === "profile") {
+      toggleModal(profileModal, true);
+    }
   });
 });
 
