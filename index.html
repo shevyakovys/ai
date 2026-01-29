@@ -276,6 +276,35 @@
         </section>
 
         <section id="reportsView" class="view" data-view="reports">
+          <section class="filters-panel">
+            <div class="filters-panel__header">
+              <h2>Фильтры</h2>
+              <div class="filters-panel__toggle">
+                <button class="toggle-button is-active" type="button" data-transaction-type="all">
+                  Все
+                </button>
+                <button class="toggle-button" type="button" data-transaction-type="income">
+                  Доходы
+                </button>
+                <button class="toggle-button" type="button" data-transaction-type="expense">
+                  Расходы
+                </button>
+                <button class="toggle-button" type="button" data-transaction-type="plan">
+                  Планы
+                </button>
+              </div>
+            </div>
+            <form class="filters-form">
+              <label>
+                Дата с
+                <input name="reportStartDate" type="date" />
+              </label>
+              <label>
+                Дата по
+                <input name="reportEndDate" type="date" />
+              </label>
+            </form>
+          </section>
           <div class="card">
             <div class="card__header">
               <h3>Сводка по категориям</h3>
@@ -377,12 +406,14 @@
 
     <template id="expenseItemTemplate">
       <li class="transaction-item">
-        <span class="transaction-item__icon" data-icon></span>
-        <div>
-          <h3>Название</h3>
-          <p class="expense-item__meta">Категория · Дата</p>
+        <div class="transaction-item__header">
+          <span class="transaction-item__icon" data-icon></span>
+          <div class="transaction-item__content">
+            <h3>Название</h3>
+            <p class="expense-item__meta">Категория · Дата</p>
+          </div>
+          <strong class="transaction-item__amount">0 ₽</strong>
         </div>
-        <strong class="transaction-item__amount">0 ₽</strong>
         <button class="expense-item__remove" type="button">Удалить</button>
       </li>
     </template>
@@ -482,11 +513,12 @@
             <div class="card__header">
               <h3>Категории</h3>
             </div>
-            <div class="form-toggle">
+            <div class="form-toggle form-toggle--wide">
               <button class="toggle-button is-active" type="button" data-category-type="expense">
                 Расходы
               </button>
               <button class="toggle-button" type="button" data-category-type="income">Доходы</button>
+              <button class="toggle-button" type="button" data-category-type="plan">Планы</button>
             </div>
             <form id="categoryForm" class="inline-form">
               <input name="categoryName" type="text" placeholder="Новая категория" required />
