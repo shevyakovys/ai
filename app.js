@@ -1,9 +1,11 @@
 const form = document.getElementById("expenseForm");
 const list = document.getElementById("expenseList");
+const recentList = document.getElementById("recentList");
 const template = document.getElementById("expenseItemTemplate");
 const totalAmount = document.getElementById("totalAmount");
 const categorySummary = document.getElementById("categorySummary");
 const emptyState = document.getElementById("emptyState");
+const recentEmpty = document.getElementById("recentEmpty");
 const clearAllButton = document.getElementById("clearAll");
 const categoryForm = document.getElementById("categoryForm");
 const categoryList = document.getElementById("categoryList");
@@ -37,10 +39,7 @@ const userEmail = document.getElementById("userEmail");
 const totalCount = document.getElementById("totalCount");
 const filteredCount = document.getElementById("filteredCount");
 const profileModal = document.getElementById("profileModal");
-const categoryModal = document.getElementById("categoryModal");
 const operationModal = document.getElementById("operationModal");
-const categoryModalForm = document.getElementById("categoryModalForm");
-const openCategoryModal = document.getElementById("openCategoryModal");
 const openOperationModal = document.getElementById("openOperationModal");
 const avatarInput = document.getElementById("avatarInput");
 const avatarPreview = document.getElementById("avatarPreview");
@@ -61,6 +60,7 @@ const categoryTypeButtons = document.querySelectorAll("[data-category-type]");
 const actionButtons = document.querySelectorAll("[data-action-type]");
 const actionOpenButtons = document.querySelectorAll("[data-action-open]");
 const navButtons = document.querySelectorAll("[data-nav]");
+const viewSections = document.querySelectorAll("[data-view]");
 
 const API_BASE = "/api";
 const TOKEN_KEY = "auth_token";
@@ -123,6 +123,9 @@ const apiFetch = async (path, options = {}) => {
 };
 
 const toggleModal = (modal, isOpen) => {
+  if (!modal) {
+    return;
+  }
   modal.classList.toggle("is-open", isOpen);
 };
 
@@ -130,10 +133,9 @@ const attachModalHandlers = () => {
   document.querySelectorAll("[data-close-modal]").forEach((button) => {
     button.addEventListener("click", () => {
       toggleModal(profileModal, false);
-      toggleModal(categoryModal, false);
       toggleModal(operationModal, false);
       if (filtersBar) {
-        toggleModal(filtersBar, false);
+        filtersBar.classList.remove("is-open");
       }
       if (notificationsModal) {
         toggleModal(notificationsModal, false);
@@ -171,14 +173,17 @@ const toggleAuthView = () => {
   if (form) {
     form.style.display = viewOnly ? "none" : "grid";
   }
-  clearAllButton.style.display = viewOnly ? "none" : "inline-flex";
-  openCategoryModal.style.display = viewOnly ? "none" : "inline-flex";
-  categoryForm.style.display = viewOnly ? "none" : "flex";
+  if (clearAllButton) {
+    clearAllButton.style.display = viewOnly ? "none" : "inline-flex";
+  }
+  if (categoryForm) {
+    categoryForm.style.display = viewOnly ? "none" : "flex";
+  }
   if (bottomNav) {
     bottomNav.style.display = showContent ? "grid" : "none";
   }
   if (!showContent && filtersBar) {
-    toggleModal(filtersBar, false);
+    filtersBar.classList.remove("is-open");
   }
 };
 
@@ -427,7 +432,6 @@ const updateBalanceDisplay = () => {
   const totalText = formatCurrency(total);
   balanceAmount.textContent = totalText;
   totalAmount.textContent = totalText;
-  balanceAmount.classList.toggle("is-hidden", balanceHidden);
   if (summaryCards) {
     summaryCards.classList.toggle("is-blurred", balanceHidden);
   }
@@ -436,14 +440,16 @@ const updateBalanceDisplay = () => {
   planTotal.textContent = formatCurrency(plan);
 };
 
-const renderList = (filteredExpenses) => {
-  list.innerHTML = "";
-  const itemsToRender = currentView === "home" ? filteredExpenses.slice(0, 5) : filteredExpenses;
+const renderList = (listElement, emptyElement, expenses, limit = null) => {
+  if (!listElement) {
+    return;
+  }
 
-  if (!itemsToRender.length) {
-    emptyState.style.display = "block";
-  } else {
-    emptyState.style.display = "none";
+  listElement.innerHTML = "";
+  const itemsToRender = limit ? expenses.slice(0, limit) : expenses;
+
+  if (emptyElement) {
+    emptyElement.style.display = itemsToRender.length ? "none" : "block";
   }
 
   itemsToRender
@@ -483,7 +489,7 @@ const renderList = (filteredExpenses) => {
 
       item.dataset.id = expense.id;
       item.classList.add(`transaction-item--${expense.type}`);
-      list.appendChild(clone);
+      listElement.appendChild(clone);
     });
 };
 
@@ -500,8 +506,17 @@ const render = () => {
     transactionsTitle.textContent = isHome ? "Последние транзакции" : "Все транзакции";
     recentAllButton.style.display = isHome ? "inline-flex" : "none";
   }
-  renderList(filteredExpenses);
+  renderList(recentList, recentEmpty, filteredExpenses, 5);
+  renderList(list, emptyState, filteredExpenses);
   renderTotals(filteredExpenses);
+};
+
+const setView = (view) => {
+  currentView = view;
+  viewSections.forEach((section) => {
+    section.classList.toggle("is-active", section.dataset.view === view);
+  });
+  render();
 };
 
 const renderChart = (expenses) => {
@@ -739,19 +754,21 @@ summaryPeriod.addEventListener("change", () => {
   render();
 });
 
-clearAllButton.addEventListener("click", async () => {
-  if (clearAllButton.dataset.action === "view-all") {
-    return;
-  }
-  if (!state.expenses.length) {
-    return;
-  }
+if (clearAllButton) {
+  clearAllButton.addEventListener("click", async () => {
+    if (clearAllButton.dataset.action === "view-all") {
+      return;
+    }
+    if (!state.expenses.length) {
+      return;
+    }
 
-  const confirmed = window.confirm("Удалить все расходы текущего профиля?");
-  if (confirmed) {
-    await clearAllExpenses();
-  }
-});
+    const confirmed = window.confirm("Удалить все расходы текущего профиля?");
+    if (confirmed) {
+      await clearAllExpenses();
+    }
+  });
+}
 
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -799,18 +816,6 @@ if (openOperationModal) {
   });
 }
 
-openCategoryModal.addEventListener("click", () => {
-  toggleModal(categoryModal, true);
-});
-
-categoryModalForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(categoryModalForm);
-  await addCategory(formData.get("categoryName"), getCategoryTypeForForm(formType));
-  categoryModalForm.reset();
-  toggleModal(categoryModal, false);
-});
-
 avatarInput.addEventListener("change", (event) => {
   updateAvatar(event.target.files[0]);
 });
@@ -834,9 +839,16 @@ authSwitchButtons.forEach((button) => {
 actionButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const actionType = button.dataset.actionType;
-    const mappedType =
-      actionType === "transfer" ? "expense" : actionType === "goal" ? "plan" : actionType;
-    formType = mappedType;
+    if (actionType === "budget") {
+      const targetButton = Array.from(navButtons).find((item) => item.dataset.nav === "budget");
+      if (targetButton) {
+        targetButton.click();
+      } else {
+        setView("budget");
+      }
+      return;
+    }
+    formType = actionType;
     formTypeButtons.forEach((item) => item.classList.remove("is-active"));
     formTypeButtons.forEach((item) => {
       item.classList.toggle("is-active", item.dataset.formType === formType);
@@ -851,9 +863,6 @@ actionOpenButtons.forEach((button) => {
     const target = button.dataset.actionOpen;
     if (target === "profile") {
       toggleModal(profileModal, true);
-    }
-    if (target === "filters") {
-      toggleModal(filtersBar, true);
     }
     if (target === "notifications") {
       toggleModal(notificationsModal, true);
@@ -913,11 +922,11 @@ navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     navButtons.forEach((item) => item.classList.remove("is-active"));
     button.classList.add("is-active");
-    currentView = button.dataset.nav;
     if (button.dataset.nav === "profile") {
       toggleModal(profileModal, true);
+      return;
     }
-    render();
+    setView(button.dataset.nav);
   });
 });
 
