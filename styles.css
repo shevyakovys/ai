@@ -286,7 +286,7 @@ body {
 
 .transaction-item {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
   background: rgba(15, 23, 42, 0.6);
@@ -333,6 +333,7 @@ body {
 .transaction-item__amount {
   font-size: 15px;
   font-weight: 600;
+  justify-self: end;
 }
 
 .transaction-item--income .transaction-item__amount {
@@ -640,7 +641,7 @@ button.ghost:hover {
 
 .transaction-item__header {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   gap: 10px;
   align-items: center;
 }
