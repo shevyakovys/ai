@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0b0e12" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Ваши финансы" />
+    <link rel="manifest" href="./manifest.json" />
+    <title>Expense Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section id="authSection" class="card auth">
+        <header>
+          <p class="app__eyebrow">Добро пожаловать</p>
+          <h1 id="authTitle">Вход</h1>
+          <p class="app__subtitle">Войдите, чтобы управлять расходами и делиться статистикой.</p>
+        </header>
+        <div class="auth__forms">
+          <div class="auth__panel" data-auth-view="login">
+            <form id="loginForm" class="form">
+              <label>
+                Email
+                <input name="email" type="email" autocomplete="email" required />
+              </label>
+              <label>
+                Пароль
+                <input name="password" type="password" autocomplete="current-password" required />
+              </label>
+              <p id="loginMessage" class="message"></p>
+              <button type="submit">Войти</button>
+              <button type="button" class="auth__switch" data-auth-switch="register">
+                Нет аккаунта? Зарегистрироваться
+              </button>
+            </form>
+          </div>
+          <div class="auth__panel is-hidden" data-auth-view="register">
+            <form id="registerForm" class="form">
+              <label>
+                Имя
+                <input name="name" type="text" autocomplete="name" required />
+              </label>
+              <label>
+                Email
+                <input name="email" type="email" autocomplete="email" required />
+              </label>
+              <label>
+                Пароль
+                <input name="password" type="password" autocomplete="new-password" required />
+              </label>
+              <p id="registerMessage" class="message"></p>
+              <button type="submit">Создать аккаунт</button>
+              <button type="button" class="auth__switch" data-auth-switch="login">
+                Уже есть аккаунт? Войти
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <header id="appHeader" class="app-header">
+        <div>
+          <p class="app__eyebrow">Добро пожаловать</p>
+          <h1 class="app__title">Ваши финансы</h1>
+          <span id="profileShortName" class="sr-only">—</span>
+        </div>
+        <div class="app-header__actions">
+          <button
+            class="icon-button icon-button--lg"
+            type="button"
+            aria-label="Уведомления"
+            data-action-open="notifications"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
+          <button
+            class="icon-button icon-button--lg"
+            type="button"
+            aria-label="Настройки"
+            data-action-open="settings"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <section id="appContent" class="app-views">
+        <section id="homeView" class="view is-active" data-view="home">
+          <section id="summaryCards" class="balance-card">
+            <div class="balance-card__header">
+              <div>
+                <p class="balance-card__label">Баланс</p>
+                <h2 id="balanceAmount" class="balance-card__amount blur-target">0 ₽</h2>
+                <span id="totalAmount" class="sr-only">0 ₽</span>
+              </div>
+              <button
+                class="icon-button icon-button--lg icon-button--ghost"
+                id="toggleBalance"
+                type="button"
+                aria-label="Скрыть баланс"
+                aria-pressed="false"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+            <div class="balance-card__stats">
+              <div class="balance-stat balance-stat--income">
+                <span class="balance-stat__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
+                  </svg>
+                </span>
+                <div>
+                  <p>Доходы</p>
+                  <strong id="incomeTotal" class="blur-target">0 ₽</strong>
+                </div>
+              </div>
+              <div class="balance-stat balance-stat--expense">
+                <span class="balance-stat__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 7l10 10" />
+                    <path d="M7 17h10V7" />
+                  </svg>
+                </span>
+                <div>
+                  <p>Расходы</p>
+                  <strong id="expenseTotal" class="blur-target">0 ₽</strong>
+                </div>
+              </div>
+              <div class="balance-stat balance-stat--plan">
+                <span class="balance-stat__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="7" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </span>
+                <div>
+                  <p>Плановые расходы</p>
+                  <strong id="planTotal" class="blur-target">0 ₽</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="quickActions" class="action-section">
+            <div class="action-grid">
+              <button class="action-button action-button--income" type="button" data-action-type="income">
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
+                  </svg>
+                </span>
+                Доход
+              </button>
+              <button
+                class="action-button action-button--expense"
+                type="button"
+                data-action-type="expense"
+              >
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 7l10 10" />
+                    <path d="M7 17h10V7" />
+                  </svg>
+                </span>
+                Расход
+              </button>
+              <button class="action-button action-button--plan" type="button" data-action-type="plan">
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="7" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </span>
+                План
+              </button>
+              <button
+                class="action-button action-button--budget"
+                type="button"
+                data-action-type="budget"
+              >
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="7" height="7" rx="1" />
+                    <rect x="13" y="4" width="7" height="7" rx="1" />
+                    <rect x="4" y="13" width="7" height="7" rx="1" />
+                    <rect x="13" y="13" width="7" height="7" rx="1" />
+                  </svg>
+                </span>
+                Бюджет
+              </button>
+            </div>
+          </section>
+
+          <section class="transaction-section">
+            <div class="section-header">
+              <h2 id="transactionsTitle">Последние транзакции</h2>
+              <button id="recentAll" class="link-button" type="button">
+                Все
+                <span aria-hidden="true">›</span>
+              </button>
+            </div>
+            <div id="recentEmpty" class="empty">Нет операций для отображения.</div>
+            <ul id="recentList" class="transaction-list"></ul>
+          </section>
+        </section>
+
+        <section id="transactionsView" class="view" data-view="transactions">
+          <section id="filtersBar" class="filters-panel">
+            <div class="filters-panel__header">
+              <h2>Фильтры</h2>
+              <div class="filters-panel__toggle">
+                <button class="toggle-button is-active" type="button" data-transaction-type="all">
+                  Все
+                </button>
+                <button class="toggle-button" type="button" data-transaction-type="income">
+                  Доходы
+                </button>
+                <button class="toggle-button" type="button" data-transaction-type="expense">
+                  Расходы
+                </button>
+                <button class="toggle-button" type="button" data-transaction-type="plan">
+                  Планы
+                </button>
+              </div>
+            </div>
+            <form id="filterForm" class="filters-form">
+              <label>
+                Категория
+                <select id="filterCategory" name="category"></select>
+              </label>
+              <label>
+                Поиск
+                <input name="search" type="text" placeholder="Введите название" />
+              </label>
+              <label>
+                Дата с
+                <input name="startDate" type="date" />
+              </label>
+              <label>
+                Дата по
+                <input name="endDate" type="date" />
+              </label>
+              <button id="resetFilters" type="button" class="ghost">Сбросить</button>
+            </form>
+          </section>
+          <section class="transaction-section">
+            <div id="emptyState" class="empty">Нет операций для отображения.</div>
+            <ul id="expenseList" class="transaction-list"></ul>
+          </section>
+        </section>
+
+        <section id="reportsView" class="view" data-view="reports">
+          <div class="card">
+            <div class="card__header">
+              <h3>Сводка по категориям</h3>
+              <select id="summaryPeriod" class="select-inline">
+                <option value="all">За всё время</option>
+                <option value="day">День</option>
+                <option value="week">Неделя</option>
+                <option value="month">Месяц</option>
+                <option value="quarter">Квартал</option>
+                <option value="half-year">Полугодие</option>
+                <option value="year">Год</option>
+              </select>
+            </div>
+            <div class="summary" id="categorySummary"></div>
+            <canvas id="analyticsChart" width="360" height="180"></canvas>
+          </div>
+          <div class="card">
+            <div class="card__header">
+              <h3>Статистика</h3>
+            </div>
+            <div class="stats-grid">
+              <div class="stat">
+                <span>Всего</span>
+                <strong id="totalCount">0</strong>
+              </div>
+              <div class="stat">
+                <span>Отобрано</span>
+                <strong id="filteredCount">0</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="budgetView" class="view" data-view="budget">
+          <div class="card">
+            <div class="card__header">
+              <h3>Бюджет</h3>
+            </div>
+            <p class="hint">
+              Здесь будет отображаться планирование бюджета. Сейчас можно добавлять плановые
+              расходы через кнопку «План».
+            </p>
+          </div>
+        </section>
+      </section>
+
+      <nav id="bottomNav" class="bottom-nav" aria-label="Основная навигация">
+        <button class="bottom-nav__item is-active" type="button" data-nav="home">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 10l9-7 9 7" />
+              <path d="M5 10v10h14V10" />
+            </svg>
+          </span>
+          Главная
+        </button>
+        <button class="bottom-nav__item" type="button" data-nav="transactions">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16" />
+              <path d="M4 12h16" />
+              <path d="M4 18h16" />
+            </svg>
+          </span>
+          Транзакции
+        </button>
+        <button class="bottom-nav__item" type="button" data-nav="reports">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 20h16" />
+              <path d="M6 16v-6" />
+              <path d="M12 16V8" />
+              <path d="M18 16v-10" />
+            </svg>
+          </span>
+          Отчеты
+        </button>
+        <button class="bottom-nav__item" type="button" data-nav="budget">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="7" height="7" rx="1" />
+              <rect x="13" y="4" width="7" height="7" rx="1" />
+              <rect x="4" y="13" width="7" height="7" rx="1" />
+              <rect x="13" y="13" width="7" height="7" rx="1" />
+            </svg>
+          </span>
+          Бюджет
+        </button>
+        <button
+          class="bottom-nav__fab"
+          id="openOperationModal"
+          type="button"
+          aria-label="Добавить операцию"
+        >
+          +
+        </button>
+      </nav>
+    </main>
+
+    <template id="expenseItemTemplate">
+      <li class="transaction-item">
+        <span class="transaction-item__icon" data-icon></span>
+        <div>
+          <h3>Название</h3>
+          <p class="expense-item__meta">Категория · Дата</p>
+        </div>
+        <strong class="transaction-item__amount">0 ₽</strong>
+        <button class="expense-item__remove" type="button">Удалить</button>
+      </li>
+    </template>
+
+    <div id="operationModal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2>Новая операция</h2>
+          <button class="icon-button" type="button" data-close-modal aria-label="Закрыть">
+            ✕
+          </button>
+        </div>
+        <form id="expenseForm" class="form">
+          <div class="form__header">
+            <h3>Операция</h3>
+            <div class="form-toggle">
+              <button class="toggle-button is-active" type="button" data-form-type="expense">
+                Расход
+              </button>
+              <button class="toggle-button" type="button" data-form-type="income">Доход</button>
+              <button class="toggle-button" type="button" data-form-type="plan">План</button>
+            </div>
+          </div>
+          <label>
+            Название
+            <input name="title" type="text" placeholder="Например, Кофе" required />
+          </label>
+          <label>
+            Категория
+            <select id="categorySelect" name="category" required></select>
+          </label>
+          <label>
+            Сумма
+            <input name="amount" type="number" min="1" step="0.01" required />
+          </label>
+          <label>
+            Дата
+            <input name="date" type="date" required />
+          </label>
+          <button type="submit">Сохранить</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="notificationsModal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2>Уведомления</h2>
+          <button class="icon-button" type="button" data-close-modal aria-label="Закрыть">
+            ✕
+          </button>
+        </div>
+        <div class="modal__body">
+          <p class="hint">Нет новых уведомлений.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="settingsModal" class="modal" role="dialog" aria-modal="true">
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__content">
+        <div class="modal__header">
+          <h2>Настройки</h2>
+          <button class="icon-button" type="button" data-close-modal aria-label="Закрыть">
+            ✕
+          </button>
+        </div>
+        <div class="modal__body">
+          <div class="card card--compact">
+            <div class="card__header">
+              <h3>Профиль</h3>
+            </div>
+            <div class="profile-modal">
+              <div class="profile-modal__avatar">
+                <img id="avatarPreview" alt="Аватар пользователя" />
+                <label class="avatar-upload">
+                  Загрузить фото
+                  <input id="avatarInput" type="file" accept="image/*" />
+                </label>
+              </div>
+              <div class="profile-modal__info">
+                <div>
+                  <p class="profile__name" id="userName">—</p>
+                  <p class="profile__email" id="userEmail">—</p>
+                </div>
+                <div class="profile-modal__actions">
+                  <button type="button" class="ghost" id="shareButton">Поделиться</button>
+                  <span id="shareMessage" class="hint"></span>
+                  <button type="button" class="ghost" id="logoutButton">Выйти</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card card--compact">
+            <div class="card__header">
+              <h3>Категории</h3>
+            </div>
+            <div class="form-toggle">
+              <button class="toggle-button is-active" type="button" data-category-type="expense">
+                Расходы
+              </button>
+              <button class="toggle-button" type="button" data-category-type="income">Доходы</button>
+            </div>
+            <form id="categoryForm" class="inline-form">
+              <input name="categoryName" type="text" placeholder="Новая категория" required />
+              <button type="submit">Добавить</button>
+            </form>
+            <div id="categoryList" class="chip-list"></div>
+          </div>
+          <div class="card card--compact">
+            <div class="card__header">
+              <h3>Дополнительно</h3>
+            </div>
+            <p class="hint">Другие настройки появятся позже.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <img id="profileAvatar" class="sr-only" alt="" />
+
+    <script src="./app.js"></script>
+  </body>
+</html>
